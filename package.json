@@ -1,7 +1,6 @@
 {
-  "name": "thefireks-github-io",
+  "name": "fireks-website",
   "type": "module",
-  "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
