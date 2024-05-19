@@ -1,0 +1,41 @@
+---
+import "$styles/main.css";
+import NavigationBar from "$components/navigation-bar.astro";
+import type { ComponentProps } from "astro/types";
+import { ViewTransitions } from "astro:transitions";
+type Props = ComponentProps<typeof NavigationBar>;
+
+const { title } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <ViewTransitions />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="container mx-auto grid grid-sidebar-layout gap-2">
+    <section>
+      <NavigationBar title={title} />
+    </section>
+    <main class="flex-grow bg-surface border-x-2 border-highlight">
+      <div transition:animate="slide" class="space-y-8 p-4">
+        <slot />
+      </div>
+    </main>
+    <style>
+      .grid-sidebar-layout {
+        grid-template-columns: 320px 1fr;
+      }
+    </style>
+  </body>
+</html>
