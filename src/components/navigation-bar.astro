@@ -1,0 +1,74 @@
+---
+import type { ComponentProps } from "astro/types";
+import Logo from "$components/logo.astro";
+import Footer from "$components/footer.astro";
+import { Icon } from "astro-icon/components";
+type Props = ComponentProps<typeof Logo>;
+
+const { title } = Astro.props;
+
+const links = [
+  {
+    name: "Home",
+    path: "/",
+    icon: "pixelarticons:home",
+  },
+  {
+    name: "Blog",
+    path: "/blog",
+    icon: "pixelarticons:book-open",
+  },
+  {
+    name: "Art",
+    path: "/art",
+    icon: "pixelarticons:image-gallery",
+  },
+  {
+    name: "Games",
+    path: "/games",
+    icon: "pixelarticons:gamepad",
+  },
+];
+
+const isCurrentPage = (url: string) => {
+  const pathname = Astro.url.pathname;
+  const pathParts = pathname.split("/").filter(Boolean);
+  const cleanUrl = url.replace("/", "");
+  return pathParts.some((p) => cleanUrl.includes(p)) || pathname === url;
+};
+---
+
+<nav
+  class="bg-surface text-text min-h-screen sticky top-0 p-4 rounded-lg flex flex-col gap-4 border-x-2 border-surface-hover"
+>
+  <!-- Logo -->
+  <Logo title={title} />
+  <!-- Navigation Links -->
+  <ul class="space-y-4">
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.path}
+            aria-current={isCurrentPage(link.path) ? "page" : "false"}
+            class="flex gap-2 items-center p-2 hover:font-bold group aria-[current='page']:font-bold"
+          >
+            <Icon
+              name={link.icon}
+              class="text-xl group-aria-[current='page']:text-brand-secondary"
+            />
+            <span class="font-heading text-sm">{link.name}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <!-- Footer -->
+  <Footer />
+</nav>
+
+<style>
+  a[aria-current="page"] {
+    view-transition-name: current-page;
+  }
+</style>
