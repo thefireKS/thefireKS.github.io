@@ -1,4 +1,13 @@
 :root {
-  --surface-color: #1e1818;
-  --brand-color: #d63838;
+  --surface-bg: #172538;
+  --surface-color: hsl(0, 11%, 11%);
+  --surface-hover: hsl(0, 11%, 21%);
+
+  --highlight: hsl(0, 11%, 21%);
+
+  --brand-color: #ce203f;
+  --brand-color-secondary: #eb820a;
+  --text-color: white;
+
+  --font-heading: "Silkscreen", sans-serif;
 }

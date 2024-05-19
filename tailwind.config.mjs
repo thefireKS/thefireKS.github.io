@@ -5,7 +5,14 @@ export default {
     extend: {
       colors: {
         surface: "var(--surface-color)",
+        "surface-hover": "var(--surface-hover)",
         brand: "var(--brand-color)",
+        "brand-secondary": "var(--brand-color-secondary)",
+        text: "var(--text-color)",
+        highlight: "var(--highlight)",
+      },
+      fontFamily: {
+        heading: "var(--font-heading)",
       },
     },
   },
