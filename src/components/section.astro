@@ -1,0 +1,17 @@
+---
+import { Icon } from "astro-icon/components";
+interface Props {
+  heading: string;
+  icon?: string;
+}
+
+const { heading, icon } = Astro.props;
+---
+
+<section>
+  <h2 class="font-heading text-2xl font-bold flex items-center gap-2">
+    {icon ? <Icon name={icon} class="text-brand-secondary" /> : null}
+    <span class="gradient-text">{heading}</span>
+  </h2>
+  <slot />
+</section>
