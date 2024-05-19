@@ -1,16 +1,65 @@
 ---
-import '$styles/main.css'
+import BaseLayout from "$components/layouts/base-layout.astro";
+import Section from "$components/section.astro";
+import ContentContainer from "$components/content-container.astro";
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+import FireKSProfilePicture from "$assets/fireks_picture.png";
+
+const arts = await getCollection("arts");
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout>
+  <Section heading="About Me" icon="pixelarticons:heart">
+    <div class="grid grid-two-column mt-4 gap-6">
+      <div class="overflow-hidden rounded-lg w-48">
+        <Image src={FireKSProfilePicture} alt="Picture" class="w-full h-full" />
+      </div>
+      <ContentContainer heading="Welcome to my portfolio!">
+        <p>
+          Come explore a world of lively pixels, where every piece has its own
+          story to tell. Check out my pixel art, games, and interesting posts,
+          and let's journey together through the fascinating world of digital
+          art!
+        </p>
+      </ContentContainer>
+    </div>
+  </Section>
+  <Section heading="Latest Art Collections" icon="pixelarticons:image-gallery">
+    <ul class="grid grid-cols-3 gap-2 mt-4" transition:animate="initial">
+      {
+        arts.map((art) => (
+          <a
+            href={`/art/${art.data.title.toLowerCase()}`}
+            class="h-64 overflow-hidden rounded-lg"
+          >
+            <Image
+              src={art.data.cover}
+              alt={art.data.title}
+              class="w-full h-full object-cover"
+              transition:name={art.data.coverAlt}
+            />
+          </a>
+        ))
+      }
+      <!-- {
+        arts[0].data.images.slice(0, 3).map((image) => (
+          <li class="w-full h-64">
+            <Image
+              src={image}
+              alt="image"
+              class="w-full h-full object-cover object-top"
+            />
+          </li>
+        ))
+      } -->
+    </ul>
+  </Section>
+  <Section heading="Latest Games" icon="pixelarticons:gamepad" />
+</BaseLayout>
+
+<style>
+  .grid-two-column {
+    grid-template-columns: 180px 1fr;
+  }
+</style>
