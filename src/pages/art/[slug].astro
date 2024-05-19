@@ -1,0 +1,35 @@
+---
+import ContentContainer from "$components/content-container.astro";
+import BaseLayout from "$components/layouts/base-layout.astro";
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const blogEntries = await getCollection("arts");
+  return blogEntries.map((art) => ({
+    params: { slug: art.data.title.toLowerCase() },
+    props: { art },
+  }));
+}
+
+const { art } = Astro.props;
+---
+
+<BaseLayout>
+  <ContentContainer heading={art.data.title}>
+    <p>{art.data.description}</p>
+  </ContentContainer>
+  <ul class="grid grid-cols-3">
+    {
+      art.data.images.map((image) => (
+        <li class="w-72">
+          <Image
+            src={image.image}
+            alt={image.name}
+            transition:name={image.name}
+          />
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>
