@@ -35,4 +35,12 @@
     background-clip: text;
     color: transparent;
   }
+
+  .grid-sidebar-layout {
+    grid-template-columns: 320px 1fr;
+  }
+
+  .grid-two-column {
+    grid-template-columns: 180px 1fr;
+  }
 }
