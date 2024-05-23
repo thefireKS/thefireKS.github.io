@@ -39,30 +39,42 @@ const isCurrentPage = (url: string) => {
 ---
 
 <nav
-  class="bg-surface text-text min-h-screen sticky top-0 p-4 rounded-lg flex flex-col gap-4 border-x-2 border-surface-hover"
+  class="bg-surface text-text lg:h-screen z-50 sticky top-0 p-4 flex flex-col justify-between lg:border-x-2 border-b-2 border-surface-hover"
 >
-  <!-- Logo -->
-  <Logo title={title} />
-  <!-- Navigation Links -->
-  <ul class="space-y-4">
-    {
-      links.map((link) => (
-        <li>
-          <a
-            href={link.path}
-            aria-current={isCurrentPage(link.path) ? "page" : "false"}
-            class="flex gap-2 items-center p-2 hover:font-bold group aria-[current='page']:font-bold"
-          >
-            <Icon
-              name={link.icon}
-              class="text-xl group-aria-[current='page']:text-brand-secondary"
-            />
-            <span class="font-heading text-sm">{link.name}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  <section class="flex flex-col gap-4">
+    <!-- Logo -->
+    <section class="flex justify-between items-center text-2xl">
+      <Logo title={title} />
+      <button class="menu-button block lg:hidden">
+        <span class="sr-only">Open/Close Menu</span>
+
+        <Icon name="pixelarticons:menu" class="open-menu" />
+        <Icon name="pixelarticons:close-box" class="close-menu hidden" />
+      </button>
+    </section>
+
+    <!-- Navigation Links -->
+    <ul class="space-y-4 hidden lg:block">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.path}
+              aria-current={isCurrentPage(link.path) ? "page" : "false"}
+              class="flex gap-2 items-center p-2 hover:font-bold group aria-[current='page']:font-bold"
+            >
+              <Icon
+                name={link.icon}
+                class="text-xl group-aria-[current='page']:text-brand-secondary"
+              />
+              <span class="font-heading text-sm">{link.name}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
   <!-- Footer -->
   <Footer />
 </nav>
@@ -72,3 +84,34 @@ const isCurrentPage = (url: string) => {
     view-transition-name: current-page;
   }
 </style>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    let isOpen = false;
+    const navigationContainer = document.querySelector("nav");
+    const menuButton = navigationContainer?.querySelector("button");
+    const navigationList = navigationContainer?.querySelector("ul");
+    const openMenuIcon = menuButton?.querySelector(".open-menu") as HTMLElement;
+    const closeMenuicon = menuButton?.querySelector(".close-menu");
+
+    function toggleMenu(e: MouseEvent) {
+      isOpen = !isOpen;
+
+      if (!navigationList) return;
+      if (!openMenuIcon) return;
+      if (!closeMenuicon) return;
+
+      if (isOpen) {
+        navigationList.classList.remove("hidden");
+        openMenuIcon.classList.add("hidden");
+        closeMenuicon.classList.remove("hidden");
+      } else {
+        navigationList.classList.add("hidden");
+        openMenuIcon.classList.remove("hidden");
+        closeMenuicon.classList.add("hidden");
+      }
+    }
+
+    menuButton?.addEventListener("click", toggleMenu);
+  });
+</script>
