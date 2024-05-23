@@ -1,11 +1,11 @@
 title: "Second"
 description: My First Collection
-cover: $assets/stalopxasine_trailer.gif
-coverAlt: St
+cover: $assets/girl.png
+coverAlt: g
 images:
   - name: "duck"
     image: $assets/duck.jpg
-  - name: "girl"
+  - name: "g"
     image: $assets/girl.png
   - name: "kostur"
     image: $assets/kostur.jpg

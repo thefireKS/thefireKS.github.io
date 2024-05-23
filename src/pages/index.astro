@@ -11,8 +11,10 @@ const arts = await getCollection("arts");
 
 <BaseLayout>
   <Section heading="About Me" icon="pixelarticons:heart">
-    <div class="grid grid-two-column mt-4 gap-6">
-      <div class="overflow-hidden rounded-lg w-48">
+    <div
+      class="grid lg:grid-two-column place-items-center lg:place-items-stretch mt-4 gap-6"
+    >
+      <div class="overflow-hidden rounded-lg w-48 order-last lg:order-first">
         <Image src={FireKSProfilePicture} alt="Picture" class="w-full h-full" />
       </div>
       <ContentContainer heading="Welcome to my portfolio!">
@@ -26,34 +28,31 @@ const arts = await getCollection("arts");
     </div>
   </Section>
   <Section heading="Latest Art Collections" icon="pixelarticons:image-gallery">
-    <ul class="grid grid-cols-3 gap-2 mt-4" transition:animate="initial">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-4"
+      transition:animate="initial"
+    >
       {
         arts.map((art) => (
           <a
             href={`/art/${art.data.title.toLowerCase()}`}
-            class="h-64 overflow-hidden rounded-lg"
+            class="overflow-hidden rounded-lg bg-surface-hover"
+            transition:name={art.data.coverAlt}
           >
-            <Image
-              src={art.data.cover}
-              alt={art.data.title}
-              class="w-full h-full object-cover"
-              transition:name={art.data.coverAlt}
-            />
+            <div class="h-64">
+              <Image
+                src={art.data.cover}
+                alt={art.data.title}
+                class="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div class="p-4">
+              <span>{art.data.title}</span>
+            </div>
           </a>
         ))
       }
-      <!-- {
-        arts[0].data.images.slice(0, 3).map((image) => (
-          <li class="w-full h-64">
-            <Image
-              src={image}
-              alt="image"
-              class="w-full h-full object-cover object-top"
-            />
-          </li>
-        ))
-      } -->
-    </ul>
+    </div>
   </Section>
   <Section heading="Latest Games" icon="pixelarticons:gamepad" />
 </BaseLayout>
