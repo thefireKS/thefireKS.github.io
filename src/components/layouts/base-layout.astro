@@ -23,19 +23,14 @@ const { title } = Astro.props;
       rel="stylesheet"
     />
   </head>
-  <body class="container mx-auto grid grid-sidebar-layout gap-2">
-    <section>
-      <NavigationBar title={title} />
-    </section>
-    <main class="flex-grow bg-surface border-x-2 border-highlight">
-      <div transition:animate="slide" class="space-y-8 p-4">
+  <body class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2">
+    <NavigationBar title={title} />
+    <main
+      class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
+    >
+      <div transition:animate="fade" class="space-y-8 p-4">
         <slot />
       </div>
     </main>
-    <style>
-      .grid-sidebar-layout {
-        grid-template-columns: 320px 1fr;
-      }
-    </style>
   </body>
 </html>
