@@ -5,14 +5,18 @@ import ContentContainer from "$components/content-container.astro";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import FireKSProfilePicture from "$assets/fireks_picture.png";
+import { getAllGames } from "$api/games";
+import GameCard from "$components/game-card.astro";
 
 const arts = await getCollection("arts");
+
+const result = await getAllGames();
 ---
 
 <BaseLayout>
   <Section heading="About Me" icon="pixelarticons:heart">
     <div
-      class="grid lg:grid-two-column place-items-center lg:place-items-stretch mt-4 gap-6"
+      class="grid lg:grid-two-column place-items-center lg:place-items-stretch gap-6"
     >
       <div class="overflow-hidden rounded-lg w-48 order-last lg:order-first">
         <Image src={FireKSProfilePicture} alt="Picture" class="w-full h-full" />
@@ -29,7 +33,7 @@ const arts = await getCollection("arts");
   </Section>
   <Section heading="Latest Art Collections" icon="pixelarticons:image-gallery">
     <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-4"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
       transition:animate="initial"
     >
       {
@@ -54,7 +58,11 @@ const arts = await getCollection("arts");
       }
     </div>
   </Section>
-  <Section heading="Latest Games" icon="pixelarticons:gamepad" />
+  <Section heading="Latest Games" icon="pixelarticons:gamepad">
+    <div class="grid grid-cols-3 gap-4">
+      {result?.games.map((game) => <GameCard game={game} />)}
+    </div>
+  </Section>
 </BaseLayout>
 
 <style>

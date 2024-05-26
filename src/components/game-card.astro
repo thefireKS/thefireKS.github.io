@@ -1,0 +1,45 @@
+---
+import type { Game } from "$api/games";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+
+interface Props {
+  game: Game;
+}
+
+const { game } = Astro.props;
+---
+
+<a
+  href={game.url}
+  class="rounded-lg overflow-hidden min-h-0 h-full flex flex-col"
+>
+  <Image
+    src={game.cover_url}
+    alt={game.title}
+    width={1280}
+    height={320}
+    class="object-cover hover:scale-105 transition-all will-change-transform"
+  />
+  <div class="p-2 bg-surface-hover flex-grow">
+    <h4
+      class="font-bold font-heading text-lg tracking-wide text-brand-secondary"
+    >
+      {game.title}
+    </h4>
+    <div class="font-semibold flex items-center gap-2">
+      {
+        game.type === "html" ? (
+          <Fragment>
+            <Icon name="logos:microsoft-windows-icon" />
+            Playable in Browser
+          </Fragment>
+        ) : (
+          "Windows"
+        )
+      }
+      {game.p_windows && "Windows"}
+    </div>
+    <p>{game.short_text}</p>
+  </div>
+</a>
