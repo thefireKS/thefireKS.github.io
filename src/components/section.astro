@@ -13,5 +13,7 @@ const { heading, icon } = Astro.props;
     {icon ? <Icon name={icon} class="text-brand-secondary" /> : null}
     <span class="gradient-text">{heading}</span>
   </h2>
-  <slot />
+  <div class="mt-4">
+    <slot />
+  </div>
 </section>
