@@ -2,6 +2,23 @@
 @tailwind base;
 @tailwind components;
 
+/* Register your custom font family and tell the browser where to find it. */
+@font-face {
+  font-family: "PixeloidSans";
+  src: url("/fonts/PixeloidSans.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PixeloidSans";
+  src: url("/fonts/PixeloidSans-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: oblique;
+  font-display: swap;
+}
+
 @layer base {
   html {
     background-color: var(--surface-bg);
@@ -18,6 +35,15 @@
       "Open Sans",
       "Helvetica Neue",
       sans-serif;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  html {
+    scrollbar-gutter: stable;
   }
 }
 
@@ -37,7 +63,7 @@
   }
 
   .grid-sidebar-layout {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 16rem 1fr;
   }
 
   .grid-two-column {
