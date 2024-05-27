@@ -32,6 +32,9 @@ export async function getAllGames(): Promise<Games | null> {
 
   try {
     const parsedData = GamesSchema.parse(result);
+    parsedData.games = parsedData.games.filter(
+      (g) => !g.title.includes("[Restricted]"),
+    );
     return parsedData;
   } catch (e) {
     console.error("Validation failed", e);
