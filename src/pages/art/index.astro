@@ -1,5 +1,31 @@
 ---
+import ArtCard from "$components/art-card.astro";
+import ContentContainer from "$components/content-container.astro";
 import BaseLayout from "$components/layouts/base-layout.astro";
+import { getCollection } from "astro:content";
+
+const arts = await getCollection("arts");
+
+let totalImagesCount = 0;
+
+arts.forEach((art) => {
+  totalImagesCount += art.data.images.length;
+});
 ---
 
-<BaseLayout title="halfwaypixel">Art</BaseLayout>
+<BaseLayout logoTitle="halfwaypixel" siteMainTitle="Art">
+  <ContentContainer heading="This is my art collections page.">
+    <p>
+      I posted <strong>{arts.length}</strong> art collections and total of <strong
+        >{totalImagesCount}</strong
+      > arts.
+    </p>
+  </ContentContainer>
+
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
+    transition:animate="initial"
+  >
+    {arts.map((art) => <ArtCard art={art} />)}
+  </div>
+</BaseLayout>
