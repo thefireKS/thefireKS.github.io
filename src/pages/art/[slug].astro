@@ -19,15 +19,19 @@ const { art } = Astro.props;
   <ContentContainer heading={art.data.title}>
     <p>{art.data.description}</p>
   </ContentContainer>
-  <ul class="grid grid-cols-3">
+  <ul class="grid grid-cols-1 md:grid-cols-3 gap-4">
     {
-      art.data.images.map((image) => (
-        <li class="w-72">
+      art.data.images.map((image, index) => (
+        <li class="bg-surface-hover rounded-lg h-full flex flex-col overflow-hidden">
           <Image
             src={image.image}
             alt={image.name}
             transition:name={image.name}
+            class="h-96 w-full object-cover object-top"
           />
+          <h3 class="mt-auto p-2 text-lg font-heading text-brand-secondary">
+            {image.name}
+          </h3>
         </li>
       ))
     }
