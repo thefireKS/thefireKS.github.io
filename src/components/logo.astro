@@ -3,12 +3,12 @@ interface Props {
   title?: string;
 }
 
-const { title = "thefireKS." } = Astro.props;
+const { title = "thefireKS" } = Astro.props;
 ---
 
-<a href="/" class="block">
-  <span
-    class="block font-heading text-2xl font-bold lg:text-center gradient-text"
-    >{title}</span
-  >
+<a
+  href="/"
+  class="font-heading text-2xl font-bold gradient-text uppercase tracking-wide w-full lg:text-center"
+>
+  {title}
 </a>
