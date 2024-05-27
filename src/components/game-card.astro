@@ -13,6 +13,7 @@ const { game } = Astro.props;
 <a
   href={game.url}
   class="rounded-lg overflow-hidden min-h-0 h-full flex flex-col"
+  transition:name={game.title}
 >
   <Image
     src={game.cover_url}
@@ -21,7 +22,7 @@ const { game } = Astro.props;
     height={320}
     class="object-cover hover:scale-105 transition-all will-change-transform"
   />
-  <div class="p-2 bg-surface-hover flex-grow">
+  <div class="p-2 bg-surface-hover flex-grow flex flex-col gap-2">
     <h4
       class="font-bold font-heading text-lg tracking-wide text-brand-secondary"
     >
@@ -31,14 +32,17 @@ const { game } = Astro.props;
       {
         game.type === "html" ? (
           <Fragment>
-            <Icon name="logos:microsoft-windows-icon" />
-            Playable in Browser
+            <span class="p-2 bg-surface rounded-md">Play in Browser</span>
           </Fragment>
         ) : (
-          "Windows"
+          <Fragment>
+            <span class="p-2 bg-surface flex items-center gap-4 rounded-md">
+              <Icon name="logos:microsoft-windows-icon" />
+              <Icon name="logos:linux-tux" />
+            </span>
+          </Fragment>
         )
       }
-      {game.p_windows && "Windows"}
     </div>
     <p>{game.short_text}</p>
   </div>
