@@ -1,5 +1,24 @@
 ---
+import { getAllGames } from "$api/games";
+import ContentContainer from "$components/content-container.astro";
+import GameCard from "$components/game-card.astro";
 import BaseLayout from "$components/layouts/base-layout.astro";
+import Section from "$components/section.astro";
+
+const result = await getAllGames();
 ---
 
-<BaseLayout>Games</BaseLayout>
+<BaseLayout siteMainTitle="Games">
+  <ContentContainer heading="Games that I've built">
+    <p>
+      I made <strong>{result?.games.length}</strong> games from start to finish and
+      deployed them.
+    </p>
+  </ContentContainer>
+
+  <div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {result?.games.map((game) => <GameCard game={game} />)}
+    </div>
+  </div>
+</BaseLayout>
