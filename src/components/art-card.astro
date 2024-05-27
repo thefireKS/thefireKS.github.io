@@ -1,0 +1,30 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  art: CollectionEntry<"arts">;
+}
+
+const { art } = Astro.props;
+---
+
+<a
+  href={`/art/${art.data.title.toLowerCase()}`}
+  class="overflow-hidden rounded-lg bg-surface-hover"
+  transition:name={art.data.coverAlt}
+>
+  <div class="h-64">
+    <Image
+      src={art.data.cover}
+      alt={art.data.title}
+      class="w-full h-full object-cover object-top"
+    />
+  </div>
+  <div class="p-4">
+    <h4 class="text-lg text-brand-secondary font-heading font-semibold">
+      {art.data.title}
+    </h4>
+    <p>{art.data.description}</p>
+  </div>
+</a>

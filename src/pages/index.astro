@@ -7,6 +7,7 @@ import { getCollection } from "astro:content";
 import FireKSProfilePicture from "$assets/fireks_picture.png";
 import { getAllGames } from "$api/games";
 import GameCard from "$components/game-card.astro";
+import ArtCard from "$components/art-card.astro";
 
 const arts = await getCollection("arts");
 
@@ -36,30 +37,11 @@ const result = await getAllGames();
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
       transition:animate="initial"
     >
-      {
-        arts.map((art) => (
-          <a
-            href={`/art/${art.data.title.toLowerCase()}`}
-            class="overflow-hidden rounded-lg bg-surface-hover"
-            transition:name={art.data.coverAlt}
-          >
-            <div class="h-64">
-              <Image
-                src={art.data.cover}
-                alt={art.data.title}
-                class="w-full h-full object-cover object-top"
-              />
-            </div>
-            <div class="p-4">
-              <span>{art.data.title}</span>
-            </div>
-          </a>
-        ))
-      }
+      {arts.map((art) => <ArtCard art={art} />)}
     </div>
   </Section>
   <Section heading="Latest Games" icon="pixelarticons:gamepad">
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       {result?.games.map((game) => <GameCard game={game} />)}
     </div>
   </Section>
