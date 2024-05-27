@@ -2,10 +2,15 @@
 import "$styles/main.css";
 import NavigationBar from "$components/navigation-bar.astro";
 import type { ComponentProps } from "astro/types";
+import { siteDetails } from "site.config";
 import { ViewTransitions } from "astro:transitions";
-type Props = ComponentProps<typeof NavigationBar>;
 
-const { title } = Astro.props;
+interface Props {
+  siteMainTitle?: string;
+  logoTitle?: string;
+}
+
+const { logoTitle, siteMainTitle } = Astro.props;
 ---
 
 <html lang="en">
@@ -14,17 +19,24 @@ const { title } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="manifest" href="/site.webmanifest" />
     <ViewTransitions />
-    <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    {
+      siteMainTitle ? (
+        <title>
+          {siteMainTitle} | {siteDetails.siteTitle}
+        </title>
+      ) : (
+        <title>{siteDetails.siteTitle}</title>
+      )
+    }
   </head>
   <body class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2">
-    <NavigationBar title={title} />
+    <NavigationBar title={logoTitle} />
     <main
       class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
     >
