@@ -21,7 +21,12 @@
 
 @layer base {
   html {
-    background-color: var(--surface-bg);
+    background: linear-gradient(
+        to bottom,
+        var(--brand-color-secondary) 10%,
+        var(--brand-color) 80%
+      )
+      no-repeat;
     color: var(--text-color);
     font-family:
       system-ui,
