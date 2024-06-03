@@ -1,0 +1,31 @@
+title: "16x16"
+description: Collection of 16x16 random images
+cover: $assets/16x16/OtherSide.png
+coverAlt: OtherSide
+images:
+  - name: "Other side"
+    image: $assets/16x16/OtherSide.png
+  - name: "Donut"
+    image: $assets/16x16/Donut.png
+  - name: "Fishy"
+    image: $assets/16x16/Fishy.png
+  - name: "Mechanicus system"
+    image: $assets/16x16/MechanicusSystem.png
+  - name: "Bubbly"
+    image: $assets/16x16/Bubbly.png
+  - name: "puteipphwpwwfcop"
+    image: $assets/16x16/POLhaps.png
+  - name: "Portal to Whatever"
+    image: $assets/16x16/PortalToWhatever.png
+  - name: "Real madness"
+    image: $assets/16x16/RealMadness.png
+  - name: "Samurai"
+    image: $assets/16x16/Samurai.png
+  - name: "Something went wrong"
+    image: $assets/16x16/SomethingWentWrong.png
+  - name: "Stars and space"
+    image: $assets/16x16/StarsAndSpace.png
+  - name: "Swamps"
+    image: $assets/16x16/Swamps.png
+  - name: "Evaluating cat"
+    image: $assets/16x16/WO.png
