@@ -24,7 +24,7 @@ export type Game = z.infer<typeof GameSchema>;
 export type Games = z.infer<typeof GamesSchema>;
 
 const API_URL =
-  "https://itch.io/api/1/QGyCVjjXqkAOqJMSoG3Z7zQkseLa5u0J7FaA0IxT/my-games";
+  "https://itch.io/api/1/gtXiIwTmGTEvKXjBssNBHeIAsWJnVYN0xzHiFNfw/my-games";
 
 export async function getAllGames(): Promise<Games | null> {
   const fetchApi = await fetch(API_URL);
