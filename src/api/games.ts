@@ -5,15 +5,15 @@ const GameSchema = z.object({
   title: z.string(),
   short_text: z.string().optional(),
   url: z.string(),
-  cover_url: z.string(),
-  published: z.boolean(),
-  published_at: z.coerce.date(),
-  type: z.string(),
-  p_android: z.boolean(),
-  p_osx: z.boolean(),
-  p_linux: z.boolean(),
-  p_windows: z.boolean(),
-  downloads_count: z.number(),
+  cover_url: z.string().optional(),
+  published: z.boolean().optional(),
+  published_at: z.string().nullable().optional(),
+  type: z.string().optional(),
+  p_android: z.boolean().optional(),
+  p_osx: z.boolean().optional(),
+  p_linux: z.boolean().optional(),
+  p_windows: z.boolean().optional(),
+  downloads_count: z.number().optional(),
 });
 
 const GamesSchema = z.object({
@@ -28,6 +28,8 @@ const API_URL =
 
 export async function getAllGames(): Promise<Games | null> {
   const fetchApi = await fetch(API_URL);
+  const result = await fetchApi.json();
+  console.log(result);
   const result = await fetchApi.json();
 
   try {
