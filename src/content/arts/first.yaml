@@ -1,13 +1,13 @@
 title: "First"
 description: My First Collection
-cover: $assets/stalopxasine_trailer.gif
+cover: ../../assets/stalopxasine_trailer.gif
 coverAlt: Stalopxasine Trailer
 images:
   - name: "duck"
-    image: $assets/duck.jpg
+    image: ../../assets/duck.jpg
   - name: "girl"
-    image: $assets/girl.png
+    image: ../../assets/girl.png
   - name: "kostur"
-    image: $assets/kostur.jpg
+    image: ../../assets/kostur.jpg
   - name: "Stalopxasine Trailer"
-    image: $assets/stalopxasine_trailer.gif
+    image: ../../assets/stalopxasine_trailer.gif

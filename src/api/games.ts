@@ -30,7 +30,6 @@ export async function getAllGames(): Promise<Games | null> {
   const fetchApi = await fetch(API_URL);
   const result = await fetchApi.json();
   console.log(result);
-  const result = await fetchApi.json();
 
   try {
     const parsedData = GamesSchema.parse(result);
