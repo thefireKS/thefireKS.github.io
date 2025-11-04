@@ -24,25 +24,45 @@ const result = await getAllGames();
       </div>
       <ContentContainer heading="Welcome to my portfolio!">
         <p>
-          Come explore a world of lively pixels, where every piece has its own
-          story to tell. Check out my pixel art, games, and interesting posts,
-          and let's journey together through the fascinating world of digital
-          art!
+            Hello! I'm an independent game developer and a freelance artist, performing in lots of 
+            different roles. Here you can see my artworks, games that i made/help to develop, design, publish, etc.
+            If you have any questions - feel free to contact me! 
         </p>
       </ContentContainer>
     </div>
   </Section>
-  <Section heading="Latest Art Collections" icon="pixelarticons:image-gallery">
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
-      transition:animate="initial"
-    >
-      {arts.map((art) => <ArtCard art={art} />)}
+  <Section>
+  <ContentContainer heading="Contact me">
+    <div class="flex gap-3 mt-2">
+      <a
+        href="https://t.me/thefireKS"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex-1 text-center px-4 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition font-medium"
+      >
+        Telegram
+      </a>
+      <a
+        href="mailto:halfwaypixel@gmail.com"
+        class="flex-1 text-center px-4 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition font-medium"
+      >
+        Email
+      </a>
     </div>
-  </Section>
-  <Section heading="Latest Games" icon="pixelarticons:gamepad">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {result?.games.map((game) => <GameCard game={game} />)}
+  </ContentContainer>
+</Section>
+
+    <Section heading="Featured Video" icon="pixelarticons:play">
+    <div class="aspect-video max-w-3xl mx-auto rounded-lg overflow-hidden shadow-lg">
+      <iframe
+        width="100%"
+        height="100%"
+        src="https://www.youtube.com/embed/QJWIjtsKa78"
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
     </div>
   </Section>
 </BaseLayout>
