@@ -1,4 +1,8 @@
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
+
+const CACHE_PATH = path.resolve("./src/data/games.json");
 
 const GameSchema = z.object({
   id: z.number(),
@@ -27,18 +31,31 @@ const API_URL =
   "https://itch.io/api/1/gtXiIwTmGTEvKXjBssNBHeIAsWJnVYN0xzHiFNfw/my-games";
 
 export async function getAllGames(): Promise<Games | null> {
-  const fetchApi = await fetch(API_URL);
-  const result = await fetchApi.json();
-  console.log(result);
+    try {
+    if (fs.existsSync(CACHE_PATH)) {
+      const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+      return cached;
+    }
 
-  try {
-    const parsedData = GamesSchema.parse(result);
-    parsedData.games = parsedData.games.filter(
-      (g) => !g.title.includes("[Restricted]"),
+    const res = await fetch(API_URL);
+    const json = await res.json();
+
+    const parsed = GamesSchema.parse(json);
+    parsed.games = parsed.games.filter(
+      (g) => !g.title.includes("[Restricted]")
     );
-    return parsedData;
-  } catch (e) {
-    console.error("Validation failed", e);
-    return null;
+
+    fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
+    fs.writeFileSync(CACHE_PATH, JSON.stringify(parsed, null, 2));
+
+    console.log(`✅ Games cached to ${CACHE_PATH}`);
+    return parsed;
+  } catch (err) {
+    console.error("⚠️ Failed to fetch games. Using fallback cache if available.");
+    if (fs.existsSync(CACHE_PATH)) {
+      const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+      return cached;
+    }
+    throw err;
   }
 }

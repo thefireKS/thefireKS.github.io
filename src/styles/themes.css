@@ -1,13 +1,30 @@
 :root {
+  transition: 
+    --surface-bg 0.5s ease, 
+    --brand-color 0.5s ease,
+    --surface-color 0.5s ease,
+    --text-color 0.5s ease;
+  
   --surface-bg: #172538;
   --surface-color: hsl(0, 11%, 11%);
   --surface-hover: hsl(0, 11%, 21%);
-
   --highlight: hsl(0, 11%, 21%);
-
   --brand-color: #ce203f;
   --brand-color-secondary: #eb820a;
-  --text-color: white;
-
   --font-heading: "PixeloidSans", sans-serif;
+  --text-color: white;
+}
+
+[data-theme="art"] {
+  --surface-bg: #3a1a2f;
+  --surface-color: #251021;
+  --brand-color: #d4459a;
+  --text-color: #fff0fa;
+}
+
+[data-theme="games"] {
+  --surface-bg: #0e1b24;
+  --surface-color: #122b3a;
+  --brand-color: #00aaff;
+  --text-color: #e5f8ff;
 }

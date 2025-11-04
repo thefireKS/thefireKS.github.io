@@ -30,17 +30,16 @@ const { game } = Astro.props;
     </h4>
     <div class="font-semibold flex items-center gap-2">
       {
-        game.type === "html" ? (
-          <Fragment>
-            <span class="p-2 bg-surface rounded-md">Play in Browser</span>
-          </Fragment>
-        ) : (
-          <Fragment>
-            <span class="p-2 bg-surface flex items-center gap-4 rounded-md">
-              <Icon name="logos:microsoft-windows-icon" />
-              <Icon name="logos:linux-tux" />
-            </span>
-          </Fragment>
+        (
+          <div class="font-semibold flex items-center gap-2 flex-wrap">
+                  {game.p_windows && (<Icon name="material-symbols:window-sharp" title="Windows" />)}
+                  {game.p_linux && (<Icon name="icomoon-free:tux" title="Linux" />)}
+                  {game.p_osx && (<Icon name="ic:baseline-apple" title="macOS" />)}
+                  {game.p_android && (<Icon name="material-symbols:android" title="Android" />)}
+                  {game.type === "html" && (
+                    <span class="p-2 bg-surface rounded-md text-sm">Play in Browser</span>
+                    )}
+          </div>
         )
       }
     </div>

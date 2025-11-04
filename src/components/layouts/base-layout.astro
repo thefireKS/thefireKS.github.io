@@ -10,7 +10,7 @@ interface Props {
   logoTitle?: string;
 }
 
-const { logoTitle, siteMainTitle } = Astro.props;
+const { logoTitle, siteMainTitle, theme } = Astro.props;
 ---
 
 <html lang="en">
@@ -35,7 +35,9 @@ const { logoTitle, siteMainTitle } = Astro.props;
       )
     }
   </head>
-  <body class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2">
+  <body 
+    class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2" 
+    data-theme={theme}>
     <NavigationBar title={logoTitle} />
     <main
       class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
