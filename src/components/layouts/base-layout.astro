@@ -13,7 +13,7 @@ interface Props {
 const { logoTitle, siteMainTitle, theme } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="en" data-theme={theme}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -35,9 +35,7 @@ const { logoTitle, siteMainTitle, theme } = Astro.props;
       )
     }
   </head>
-  <body 
-    class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2" 
-    data-theme={theme}>
+  <body class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2">
     <NavigationBar title={logoTitle} />
     <main
       class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"

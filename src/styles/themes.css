@@ -25,6 +25,7 @@
 [data-theme="games"] {
   --surface-bg: #0e1b24;
   --surface-color: #122b3a;
-  --brand-color: #00aaff;
+  --brand-color: #394c8e;
+  --brand-color-secondary: #5399cc;
   --text-color: #e5f8ff;
 }
