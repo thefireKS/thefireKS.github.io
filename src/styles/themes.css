@@ -2,30 +2,39 @@
   transition: 
     --surface-bg 0.5s ease, 
     --brand-color 0.5s ease,
+    --brand-color-secondary 0.5s ease,
     --surface-color 0.5s ease,
     --text-color 0.5s ease;
   
+  --font-heading: "PixeloidSans", sans-serif;
+  --text-color: white;
+}
+
+[data-theme="main"] {
   --surface-bg: #172538;
-  --surface-color: hsl(0, 11%, 11%);
+  --surface-color: hsl(240, 2%, 12%);
   --surface-hover: hsl(0, 11%, 21%);
   --highlight: hsl(0, 11%, 21%);
   --brand-color: #ce203f;
   --brand-color-secondary: #eb820a;
-  --font-heading: "PixeloidSans", sans-serif;
-  --text-color: white;
 }
 
 [data-theme="art"] {
   --surface-bg: #3a1a2f;
   --surface-color: #251021;
-  --brand-color: #d4459a;
-  --text-color: #fff0fa;
+  --surface-color: hsl(0, 11%, 11%);
+  --surface-hover: hsl(0, 11%, 21%);
+  --highlight: hsl(0, 11%, 21%);
+  --brand-color: #e57513;
+  --brand-color-secondary: #0cb7b2;
 }
 
 [data-theme="games"] {
   --surface-bg: #0e1b24;
   --surface-color: #122b3a;
+  --surface-color: hsl(0, 11%, 11%);
+  --surface-hover: hsl(0, 11%, 21%);
+  --highlight: hsl(0, 11%, 21%);
   --brand-color: #394c8e;
   --brand-color-secondary: #5399cc;
-  --text-color: #e5f8ff;
 }

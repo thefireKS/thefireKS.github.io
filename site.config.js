@@ -1,4 +1,4 @@
 export const siteDetails = {
-  siteTitle: "thefireKS",
+  siteTitle: "THFKS | HLFWPXL",
   siteDescription: "Portfolio of thefireKS AKA halfwaypixel",
 };

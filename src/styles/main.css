@@ -20,18 +20,18 @@
 }
 
 :root[data-theme="main"] {
-  --brand-color: #ce203f;
-  --brand-color-secondary: #eb820a;
+  --brand-color: #dd0f35;
+  --brand-color-secondary: #1d1818;
 }
 
 :root[data-theme="art"] {
-  --brand-color: #3b82f6;
-  --brand-color-secondary: #9333ea;
+  --brand-color: #ff8400;
+  --brand-color-secondary: #fddc9f;
 }
 
 :root[data-theme="games"] {
-  --brand-color: #10b981;
-  --brand-color-secondary: #22d3ee;
+  --brand-color: #0073d1;
+  --brand-color-secondary: #22eeda;
 }
 
 @layer base {
@@ -69,18 +69,10 @@
 
 @layer components {
   .gradient-text {
-    background: var(--brand-color);
-    background: linear-gradient(
-      to bottom,
-      var(--brand-color) 52%,
-      var(--brand-color-secondary) 50%
-    );
-
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-text-fill-color: var(--brand-color);
     background-clip: text;
     color: transparent;
-    
   }
 
   .grid-sidebar-layout {
