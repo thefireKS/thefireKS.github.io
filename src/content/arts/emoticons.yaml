@@ -1,0 +1,19 @@
+title: "Emoticons"
+description: Emoticons that i was commisioned to make by greatest esports organisations
+cover: ../../assets/emoticons/cover_emoticons.png
+coverAlt: Evalar Emoticons Forte
+images:
+  - name: "1w Chira_Junior & his main characters"
+    image: ../../assets/emoticons/1w_chars.gif
+  - name: "1w Telegram emoticons pack"
+    image: ../../assets/emoticons/1w_tg.gif
+  - name: "BetBoom the International pack 2023"
+    image: ../../assets/emoticons/BB_23.gif
+  - name: "BetBoom the International pack 2024"
+    image: ../../assets/emoticons/BB_24.gif
+  - name: "BetBoom the International pack 2025"
+    image: ../../assets/emoticons/BB_25.gif
+  - name: "Team Spirit the International pack 2024"
+    image: ../../assets/emoticons/TS_24.gif
+  - name: "Team Spirit the International pack 2025"
+    image: ../../assets/emoticons/TS_25.gif

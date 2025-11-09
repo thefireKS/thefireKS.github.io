@@ -1,0 +1,9 @@
+title: "Stalopxasine artworks"
+description: Best concept arts from Stalopxasine
+cover: ../../assets/stalopxasine/cover_stalopxasine.png
+coverAlt: Stalopxasine title image
+images:
+  - name: "teamwork"
+    image: ../../assets/stalopxasine/collaboration.gif
+  - name: "going out"
+    image: ../../assets/stalopxasine/going_out.gif
