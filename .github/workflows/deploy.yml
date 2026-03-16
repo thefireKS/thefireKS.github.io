@@ -26,6 +26,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Astro site
+        env:
+          ITCH_IO_API_KEY: ${{ secrets.ITCH_IO_API_KEY }}
+          ITCH_IO_REFRESH: "true"
         run: pnpm run build
 
       - name: Add .nojekyll file

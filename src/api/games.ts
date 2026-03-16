@@ -3,6 +3,8 @@ import path from "path";
 import { z } from "zod";
 
 const CACHE_PATH = path.resolve("./src/data/games.json");
+const ITCH_IO_API_KEY = process.env.ITCH_IO_API_KEY;
+const SHOULD_REFRESH = process.env.ITCH_IO_REFRESH === "true";
 
 const GameSchema = z.object({
   id: z.number(),
@@ -27,35 +29,69 @@ const GamesSchema = z.object({
 export type Game = z.infer<typeof GameSchema>;
 export type Games = z.infer<typeof GamesSchema>;
 
-const API_URL =
-  "https://itch.io/api/1/gtXiIwTmGTEvKXjBssNBHeIAsWJnVYN0xzHiFNfw/my-games";
+function readCachedGames(): Games | null {
+  if (!fs.existsSync(CACHE_PATH)) {
+    return null;
+  }
+
+  const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+  return GamesSchema.parse(cached);
+}
+
+function writeCachedGames(games: Games): void {
+  fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
+  fs.writeFileSync(CACHE_PATH, JSON.stringify(games, null, 2));
+}
+
+async function fetchGamesFromApi(): Promise<Games> {
+  if (!ITCH_IO_API_KEY) {
+    throw new Error("ITCH_IO_API_KEY is not configured.");
+  }
+
+  const res = await fetch(`https://itch.io/api/1/${ITCH_IO_API_KEY}/my-games`);
+
+  if (!res.ok) {
+    throw new Error(`itch.io request failed: ${res.status} ${res.statusText}`);
+  }
+
+  const json = await res.json();
+  const parsed = GamesSchema.parse(json);
+
+  return {
+    ...parsed,
+    games: parsed.games.filter((game) => !game.title.includes("[Restricted]")),
+  };
+}
 
 export async function getAllGames(): Promise<Games | null> {
-    try {
-    if (fs.existsSync(CACHE_PATH)) {
-      const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+  const cached = readCachedGames();
+
+  if (cached && !SHOULD_REFRESH) {
+    return cached;
+  }
+
+  if (!ITCH_IO_API_KEY) {
+    if (cached) {
       return cached;
     }
 
-    const res = await fetch(API_URL);
-    const json = await res.json();
+    console.warn("ITCH_IO_API_KEY is not configured and no cache is available.");
+    return null;
+  }
 
-    const parsed = GamesSchema.parse(json);
-    parsed.games = parsed.games.filter(
-      (g) => !g.title.includes("[Restricted]")
-    );
+  try {
+    const freshGames = await fetchGamesFromApi();
+    writeCachedGames(freshGames);
 
-    fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
-    fs.writeFileSync(CACHE_PATH, JSON.stringify(parsed, null, 2));
-
-    console.log(`✅ Games cached to ${CACHE_PATH}`);
-    return parsed;
+    console.log(`Games cached to ${CACHE_PATH}`);
+    return freshGames;
   } catch (err) {
-    console.error("⚠️ Failed to fetch games. Using fallback cache if available.");
-    if (fs.existsSync(CACHE_PATH)) {
-      const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+    console.error("Failed to fetch games. Using fallback cache if available.");
+
+    if (cached) {
       return cached;
     }
+
     throw err;
   }
 }
