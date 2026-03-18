@@ -1,0 +1,701 @@
+---
+import BaseLayout from "$components/layouts/base-layout.astro";
+
+type BallTextureAnimationConfig = {
+  columns: number;
+  rows: number;
+  frameCount: number;
+  fps: number;
+  startFrame: number;
+};
+
+type BallTextureDescriptor = {
+  name: string;
+  url: string;
+  animation: BallTextureAnimationConfig | null;
+};
+
+const uploadedTextureModules = import.meta.glob(
+  "../assets/ball-textures/*.{png,jpg,jpeg,webp,avif,gif}",
+  { eager: true },
+);
+
+const uploadedAtlasConfigModules = import.meta.glob(
+  "../assets/ball-textures/*.atlas.json",
+  { eager: true, import: "default" },
+);
+
+function getModuleAssetUrl(moduleValue: unknown) {
+  const maybeDefault = (moduleValue as { default?: unknown }).default;
+
+  if (typeof maybeDefault === "string") {
+    return maybeDefault;
+  }
+
+  if (maybeDefault && typeof maybeDefault === "object" && "src" in maybeDefault) {
+    const srcValue = (maybeDefault as { src?: unknown }).src;
+    return typeof srcValue === "string" ? srcValue : null;
+  }
+
+  return null;
+}
+
+function getFileStem(modulePath: string) {
+  const normalizedPath = modulePath.replaceAll("\\", "/");
+  const fileName = normalizedPath.slice(normalizedPath.lastIndexOf("/") + 1);
+  return fileName.replace(/\.[^.]+$/, "");
+}
+
+function getAtlasStem(modulePath: string) {
+  const normalizedPath = modulePath.replaceAll("\\", "/");
+  const fileName = normalizedPath.slice(normalizedPath.lastIndexOf("/") + 1);
+  return fileName.replace(/\.atlas\.json$/, "");
+}
+
+function toPositiveInteger(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const normalizedValue = Math.floor(value);
+  return normalizedValue > 0 ? normalizedValue : null;
+}
+
+function toPositiveNumber(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  return value;
+}
+
+function normalizeAtlasConfig(rawConfig: unknown): BallTextureAnimationConfig | null {
+  if (!rawConfig || typeof rawConfig !== "object") {
+    return null;
+  }
+
+  const config = rawConfig as Record<string, unknown>;
+  const columns = toPositiveInteger(config.columns);
+  const rows = toPositiveInteger(config.rows);
+
+  if (!columns || !rows) {
+    return null;
+  }
+
+  const maxFrameCount = columns * rows;
+  const frameCount = Math.min(
+    toPositiveInteger(config.frameCount) ??
+      toPositiveInteger(config.totalFrames) ??
+      maxFrameCount,
+    maxFrameCount,
+  );
+  const fps = toPositiveNumber(config.fps) ?? 24;
+  const startFrame = Math.min(
+    Math.max(
+      typeof config.startFrame === "number" && Number.isFinite(config.startFrame)
+        ? Math.floor(config.startFrame)
+        : 0,
+      0,
+    ),
+    frameCount - 1,
+  );
+
+  return {
+    columns,
+    rows,
+    frameCount,
+    fps,
+    startFrame,
+  };
+}
+
+const atlasConfigByTextureName = new Map(
+  Object.entries(uploadedAtlasConfigModules)
+    .map(([modulePath, rawConfig]) => [
+      getAtlasStem(modulePath),
+      normalizeAtlasConfig(rawConfig),
+    ])
+    .filter(
+      (
+        entry,
+      ): entry is [string, BallTextureAnimationConfig] => entry[1] !== null,
+    ),
+);
+
+const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
+  uploadedTextureModules,
+)
+  .map(([modulePath, moduleValue]) => {
+    const url = getModuleAssetUrl(moduleValue);
+
+    if (!url) {
+      return null;
+    }
+
+    const name = getFileStem(modulePath);
+    return {
+      name,
+      url,
+      animation: atlasConfigByTextureName.get(name) ?? null,
+    };
+  })
+  .filter((descriptor): descriptor is BallTextureDescriptor => descriptor !== null)
+  .sort((left, right) => left.name.localeCompare(right.name));
+---
+
+<BaseLayout siteMainTitle="Emoticons Prototype" theme="main">
+  <section class="scene-wrapper">
+    <header class="scene-header">
+      <h1>Emoticons Scene Prototype</h1>
+      <p>
+        Garage-style door, thin container geometry, real physics, and ball textures
+        loaded from <code>src/assets/ball-textures</code>. Add an optional
+        <code>&lt;texture-name&gt;.atlas.json</code> next to a sheet when it should
+        animate.
+      </p>
+    </header>
+
+    <div class="scene-stage">
+      <div
+        id="emoji-scene-host"
+        class="scene-host"
+        data-textures={JSON.stringify(ballTextureDescriptors)}
+      ></div>
+      <div class="scene-hud">
+        Spawned balls: <span id="spawn-counter">0 / 108</span>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script type="module">
+  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+  import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js";
+
+  const host = document.getElementById("emoji-scene-host");
+  if (host && host.dataset.initialized !== "true") {
+    host.dataset.initialized = "true";
+    initScene(host);
+  }
+
+  function initScene(hostEl) {
+    const counterEl = document.getElementById("spawn-counter");
+    const textureDescriptors = JSON.parse(hostEl.dataset.textures || "[]");
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(hostEl.clientWidth, hostEl.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    hostEl.append(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x140c2b);
+    scene.fog = new THREE.Fog(0x140c2b, 10, 26);
+
+    const camera = new THREE.PerspectiveCamera(
+      44,
+      hostEl.clientWidth / hostEl.clientHeight,
+      0.1,
+      100,
+    );
+    camera.position.set(0, 2.1, 7.2);
+    camera.lookAt(0, 0.7, 0.6);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.48);
+    scene.add(ambient);
+
+    const hemiLight = new THREE.HemisphereLight(0xffcdb2, 0x12061f, 0.45);
+    scene.add(hemiLight);
+
+    const keyLightTarget = new THREE.Object3D();
+    keyLightTarget.position.set(0, 0.7, 1.7);
+    scene.add(keyLightTarget);
+
+    const keyLight = new THREE.DirectionalLight(0xfff4e8, 1.35);
+    keyLight.position.set(-6.2, 8.4, 10.8);
+    keyLight.target = keyLightTarget;
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 40;
+    keyLight.shadow.camera.left = -12;
+    keyLight.shadow.camera.right = 12;
+    keyLight.shadow.camera.top = 12;
+    keyLight.shadow.camera.bottom = -12;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.PointLight(0xff8b6a, 0.42, 20, 2);
+    fillLight.position.set(0, 2.5, 6.8);
+    scene.add(fillLight);
+
+    const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+    world.broadphase = new CANNON.SAPBroadphase(world);
+    world.allowSleep = true;
+
+    const ballPhysicsMaterial = new CANNON.Material("ball");
+    const wallPhysicsMaterial = new CANNON.Material("wall");
+
+    world.addContactMaterial(
+      new CANNON.ContactMaterial(ballPhysicsMaterial, wallPhysicsMaterial, {
+        friction: 0.24,
+        restitution: 0.18,
+      }),
+    );
+
+    world.defaultContactMaterial.friction = 0.28;
+    world.defaultContactMaterial.restitution = 0.08;
+
+    const boxMaterial = new THREE.MeshStandardMaterial({
+      color: 0x4f4276,
+      roughness: 0.9,
+      metalness: 0.03,
+    });
+
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x3f355f,
+      roughness: 0.94,
+      metalness: 0.02,
+    });
+
+    function addStaticBox(size, position, rotation, visualMaterial) {
+      const [sx, sy, sz] = size;
+      const [px, py, pz] = position;
+      const [rx, ry, rz] = rotation;
+
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(sx, sy, sz),
+        visualMaterial,
+      );
+      mesh.position.set(px, py, pz);
+      mesh.rotation.set(rx, ry, rz);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+
+      const body = new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(sx / 2, sy / 2, sz / 2)),
+        material: wallPhysicsMaterial,
+      });
+      body.position.set(px, py, pz);
+      body.quaternion.setFromEuler(rx, ry, rz);
+      world.addBody(body);
+    }
+
+    const groundY = -0.5;
+    const boxWidth = 4.0;
+    const boxDepth = 3.0;
+    const boxCenterZ = 0.5;
+    const wallHeight = 2.0;
+    const wallThickness = 0.03;
+
+    // Large world floor.
+    addStaticBox([16, 0.2, 16], [0, groundY - 0.1, 2.2], [0, 0, 0], floorMaterial);
+
+    // Thin box geometry aligned with floor level.
+    addStaticBox(
+      [boxWidth, wallThickness, boxDepth],
+      [0, groundY - wallThickness / 2, boxCenterZ],
+      [0, 0, 0],
+      boxMaterial,
+    );
+
+    addStaticBox(
+      [wallThickness, wallHeight, boxDepth],
+      [-boxWidth / 2 - wallThickness / 2, groundY + wallHeight / 2, boxCenterZ],
+      [0, 0, 0],
+      boxMaterial,
+    );
+
+    addStaticBox(
+      [wallThickness, wallHeight, boxDepth],
+      [boxWidth / 2 + wallThickness / 2, groundY + wallHeight / 2, boxCenterZ],
+      [0, 0, 0],
+      boxMaterial,
+    );
+
+    addStaticBox(
+      [boxWidth + wallThickness * 2, wallHeight, wallThickness],
+      [0, groundY + wallHeight / 2, boxCenterZ - boxDepth / 2 - wallThickness / 2],
+      [0, 0, 0],
+      boxMaterial,
+    );
+
+    // Rollout plane outside the door.
+    const doorPlaneZ = boxCenterZ + boxDepth / 2 + wallThickness / 2;
+    addStaticBox(
+      [boxWidth + 0.3, 0.08, 2.0],
+      [0, groundY - 0.18, doorPlaneZ + 1.15],
+      [0.16, 0, 0],
+      floorMaterial,
+    );
+
+    // Extra outside area for rolling balls.
+    addStaticBox(
+      [12, 0.08, 12],
+      [0, groundY - 0.52, doorPlaneZ + 5.0],
+      [0, 0, 0],
+      floorMaterial,
+    );
+
+    const topFrameMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(boxWidth + 0.38, 0.14, 0.18),
+      new THREE.MeshStandardMaterial({
+        color: 0x2f214b,
+        roughness: 0.85,
+        metalness: 0.06,
+      }),
+    );
+    topFrameMesh.position.set(0, groundY + wallHeight + 0.08, doorPlaneZ);
+    topFrameMesh.castShadow = true;
+    topFrameMesh.receiveShadow = true;
+    scene.add(topFrameMesh);
+
+    const doorPivot = new THREE.Group();
+    doorPivot.position.set(0, groundY + wallHeight, doorPlaneZ);
+    scene.add(doorPivot);
+
+    const doorWidth = boxWidth + wallThickness * 2;
+    const doorHeight = wallHeight;
+    const doorThickness = 0.07;
+
+    const doorOuter = new THREE.Mesh(
+      new THREE.BoxGeometry(doorWidth, doorHeight, doorThickness),
+      new THREE.MeshStandardMaterial({
+        color: 0x5f4c87,
+        roughness: 0.7,
+        metalness: 0.05,
+      }),
+    );
+    doorOuter.position.set(0, -doorHeight / 2, 0);
+    doorOuter.castShadow = true;
+    doorOuter.receiveShadow = true;
+    doorPivot.add(doorOuter);
+
+    const doorInner = new THREE.Mesh(
+      new THREE.PlaneGeometry(doorWidth - 0.22, doorHeight - 0.22),
+      new THREE.MeshStandardMaterial({
+        color: 0x7868a8,
+        roughness: 0.78,
+        metalness: 0.02,
+      }),
+    );
+    doorInner.position.set(0, -doorHeight / 2, -doorThickness / 2 - 0.001);
+    doorPivot.add(doorInner);
+
+    const doorBody = new CANNON.Body({
+      type: CANNON.Body.KINEMATIC,
+      shape: new CANNON.Box(
+        new CANNON.Vec3(doorWidth / 2, doorHeight / 2, doorThickness / 2),
+      ),
+      material: wallPhysicsMaterial,
+    });
+    world.addBody(doorBody);
+
+    const doorLocalOffset = new CANNON.Vec3(0, -doorHeight / 2, 0);
+    const doorWorldOffset = new CANNON.Vec3();
+    const doorQuat = new CANNON.Quaternion();
+
+    function syncDoorBody() {
+      doorQuat.setFromEuler(
+        doorPivot.rotation.x,
+        doorPivot.rotation.y,
+        doorPivot.rotation.z,
+        "XYZ",
+      );
+      doorQuat.vmult(doorLocalOffset, doorWorldOffset);
+
+      doorBody.position.set(
+        doorPivot.position.x + doorWorldOffset.x,
+        doorPivot.position.y + doorWorldOffset.y,
+        doorPivot.position.z + doorWorldOffset.z,
+      );
+      doorBody.quaternion.copy(doorQuat);
+      doorBody.velocity.set(0, 0, 0);
+      doorBody.angularVelocity.set(0, 0, 0);
+    }
+
+    const sphereRadius = 0.18;
+    const cubeSide = 0.2;
+    const cubeGeometry = new THREE.BoxGeometry(cubeSide, cubeSide, cubeSide);
+    const sphereShape = new CANNON.Sphere(sphereRadius);
+
+    const textureLoader = new THREE.TextureLoader();
+    const animatedTextures = [];
+
+    function setAtlasFrame(texture, frame, columns, rows) {
+      const column = frame % columns;
+      const row = Math.floor(frame / columns);
+
+      texture.repeat.set(1 / columns, 1 / rows);
+      texture.offset.set(column / columns, 1 - (row + 1) / rows);
+    }
+
+    const cubeMaterials =
+      textureDescriptors.length > 0
+        ? textureDescriptors.map((descriptor) => {
+            const texture = textureLoader.load(descriptor.url);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+            texture.generateMipmaps = false;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+
+            if (descriptor.animation) {
+              setAtlasFrame(
+                texture,
+                descriptor.animation.startFrame,
+                descriptor.animation.columns,
+                descriptor.animation.rows,
+              );
+            }
+
+            texture.needsUpdate = true;
+            const material = new THREE.MeshStandardMaterial({
+              map: texture,
+              roughness: 0.52,
+              metalness: 0.02,
+            });
+
+            if (descriptor.animation && descriptor.animation.frameCount > 1) {
+              animatedTextures.push({
+                texture,
+                columns: descriptor.animation.columns,
+                rows: descriptor.animation.rows,
+                frameCount: descriptor.animation.frameCount,
+                fps: descriptor.animation.fps,
+                currentFrame: descriptor.animation.startFrame,
+                elapsed: 0,
+              });
+            }
+
+            return material;
+          })
+        : [new THREE.MeshStandardMaterial({ color: 0xf2d96b })];
+
+    const balls = [];
+    const spawnState = {
+      total: 108,
+      spawned: 0,
+      interval: 0.1,
+      timer: 0,
+      minX: -1.72,
+      maxX: 1.72,
+      minZ: -0.2,
+      maxZ: 0.85,
+      y: 1.95,
+    };
+
+    function spawnBall() {
+      const x = THREE.MathUtils.randFloat(spawnState.minX, spawnState.maxX);
+      const z = THREE.MathUtils.randFloat(spawnState.minZ, spawnState.maxZ);
+      const y = spawnState.y + (spawnState.spawned % 4) * 0.035;
+
+      const material = cubeMaterials[spawnState.spawned % cubeMaterials.length];
+
+      // 1W1-style structure: sphere physics root + textured child cube mesh.
+      const root = new THREE.Object3D();
+      const cube = new THREE.Mesh(cubeGeometry, material);
+      cube.castShadow = true;
+      cube.receiveShadow = true;
+      root.add(cube);
+      root.position.set(x, y, z);
+      scene.add(root);
+
+      const body = new CANNON.Body({
+        mass: 1,
+        shape: sphereShape,
+        material: ballPhysicsMaterial,
+        linearDamping: 0.01,
+        angularDamping: 0.05,
+      });
+      body.position.set(x, y, z);
+      world.addBody(body);
+
+      balls.push({ root, body });
+
+      spawnState.spawned += 1;
+      if (counterEl) {
+        counterEl.textContent = `${spawnState.spawned} / ${spawnState.total}`;
+      }
+    }
+
+    const clock = new THREE.Clock();
+    const fixedStep = 1 / 60;
+
+    const doorAnimation = {
+      start: 2.0,
+      end: 6.0,
+      angleOpen: THREE.MathUtils.degToRad(-90),
+    };
+
+    let rafId = 0;
+    let isDisposed = false;
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.elapsedTime;
+
+      if (elapsed <= doorAnimation.start) {
+        doorPivot.rotation.x = 0;
+      } else if (elapsed >= doorAnimation.end) {
+        doorPivot.rotation.x = doorAnimation.angleOpen;
+      } else {
+        const t =
+          (elapsed - doorAnimation.start) /
+          (doorAnimation.end - doorAnimation.start);
+        doorPivot.rotation.x = THREE.MathUtils.lerp(
+          0,
+          doorAnimation.angleOpen,
+          t,
+        );
+      }
+
+      syncDoorBody();
+
+      spawnState.timer += dt;
+      while (
+        spawnState.timer >= spawnState.interval &&
+        spawnState.spawned < spawnState.total
+      ) {
+        spawnBall();
+        spawnState.timer -= spawnState.interval;
+      }
+
+      world.step(fixedStep, dt, 3);
+
+      for (let i = 0; i < balls.length; i += 1) {
+        const item = balls[i];
+        item.root.position.copy(item.body.position);
+        item.root.quaternion.copy(item.body.quaternion);
+      }
+
+      for (let i = 0; i < animatedTextures.length; i += 1) {
+        const animatedTexture = animatedTextures[i];
+        const frameDuration = 1 / animatedTexture.fps;
+        animatedTexture.elapsed += dt;
+
+        if (animatedTexture.elapsed < frameDuration) {
+          continue;
+        }
+
+        const framesToAdvance = Math.floor(animatedTexture.elapsed / frameDuration);
+        animatedTexture.elapsed -= framesToAdvance * frameDuration;
+        animatedTexture.currentFrame =
+          (animatedTexture.currentFrame + framesToAdvance) %
+          animatedTexture.frameCount;
+
+        setAtlasFrame(
+          animatedTexture.texture,
+          animatedTexture.currentFrame,
+          animatedTexture.columns,
+          animatedTexture.rows,
+        );
+      }
+
+      renderer.render(scene, camera);
+      rafId = requestAnimationFrame(animate);
+    }
+
+    function onResize() {
+      const width = hostEl.clientWidth;
+      const height = hostEl.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function dispose() {
+      if (isDisposed) {
+        return;
+      }
+      isDisposed = true;
+
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("astro:before-swap", dispose);
+
+      for (let i = 0; i < balls.length; i += 1) {
+        scene.remove(balls[i].root);
+      }
+
+      cubeGeometry.dispose();
+      for (let i = 0; i < cubeMaterials.length; i += 1) {
+        cubeMaterials[i].map?.dispose();
+        cubeMaterials[i].dispose();
+      }
+
+      renderer.dispose();
+      hostEl.innerHTML = "";
+      hostEl.dataset.initialized = "false";
+    }
+
+    window.addEventListener("resize", onResize);
+    document.addEventListener("astro:before-swap", dispose);
+
+    animate();
+  }
+</script>
+
+<style>
+  .scene-wrapper {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .scene-header h1 {
+    font-family: "PixeloidSans", sans-serif;
+    font-size: clamp(1.15rem, 1.1rem + 0.9vw, 1.8rem);
+    margin: 0;
+    letter-spacing: 0.03em;
+  }
+
+  .scene-header p {
+    margin: 0.5rem 0 0;
+    color: #f8d1ce;
+    max-width: 65ch;
+    line-height: 1.5;
+  }
+
+  .scene-header code {
+    color: #ffdcb3;
+  }
+
+  .scene-stage {
+    position: relative;
+    border: 2px solid #f8d1ce55;
+    border-radius: 0.8rem;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 70% 14%, #4c3078 0%, #261243 35%, #0f071f 100%);
+  }
+
+  .scene-host {
+    width: 100%;
+    height: clamp(420px, 72vh, 820px);
+  }
+
+  .scene-hud {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.4rem;
+    border: 1px solid #ffffff2a;
+    background: #11071dd4;
+    color: #ffd8c0;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    .scene-host {
+      height: min(70vh, 560px);
+    }
+  }
+</style>
+
