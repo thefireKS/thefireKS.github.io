@@ -13,7 +13,7 @@ importers:
         version: 0.9.8(prettier-plugin-astro@0.14.1)(prettier@3.8.1)(typescript@5.9.3)
       '@astrojs/tailwind':
         specifier: ^6.0.2
-        version: 6.0.2(astro@6.0.5(@types/node@25.5.0)(jiti@1.21.7)(rollup@4.59.0)(typescript@5.9.3)(yaml@2.8.2))(tailwindcss@4.2.1)
+        version: 6.0.2(astro@6.0.5(@types/node@25.5.0)(jiti@1.21.7)(rollup@4.59.0)(typescript@5.9.3)(yaml@2.8.2))(tailwindcss@4.2.2)
       '@iconify-json/dinkie-icons':
         specifier: ^1.2.0
         version: 1.2.0
@@ -45,8 +45,8 @@ importers:
         specifier: ^0.34.5
         version: 0.34.5
       tailwindcss:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.2
+        version: 4.2.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1656,8 +1656,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  tailwindcss@4.2.1:
-    resolution: {integrity: sha512-/tBrSQ36vCleJkAOsy9kbNTgaxvGbyOamC30PRePTQe/o1MFwEKHQk4Cn7BNGaPtjp+PuUrByJehM1hgxfq4sw==}
+  tailwindcss@4.2.2:
+    resolution: {integrity: sha512-KWBIxs1Xb6NoLdMVqhbhgwZf2PGBpPEiwOqgI4pFIYbNTfBXiKYyWoTsXgBQ9WFg/OlhnvHaY+AEpW7wSmFo2Q==}
 
   tar@7.5.11:
     resolution: {integrity: sha512-ChjMH33/KetonMTAtpYdgUFr0tbz69Fp2v7zWxQfYZX4g5ZN2nOBXm1R2xyA+lMIKrLKIoKAwFj93jE/avX9cQ==}
@@ -2130,13 +2130,13 @@ snapshots:
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/tailwind@6.0.2(astro@6.0.5(@types/node@25.5.0)(jiti@1.21.7)(rollup@4.59.0)(typescript@5.9.3)(yaml@2.8.2))(tailwindcss@4.2.1)':
+  '@astrojs/tailwind@6.0.2(astro@6.0.5(@types/node@25.5.0)(jiti@1.21.7)(rollup@4.59.0)(typescript@5.9.3)(yaml@2.8.2))(tailwindcss@4.2.2)':
     dependencies:
       astro: 6.0.5(@types/node@25.5.0)(jiti@1.21.7)(rollup@4.59.0)(typescript@5.9.3)(yaml@2.8.2)
       autoprefixer: 10.4.27(postcss@8.5.8)
       postcss: 8.5.8
       postcss-load-config: 4.0.2(postcss@8.5.8)
-      tailwindcss: 4.2.1
+      tailwindcss: 4.2.2
     transitivePeerDependencies:
       - ts-node
 
@@ -3972,7 +3972,7 @@ snapshots:
       picocolors: 1.1.1
       sax: 1.5.0
 
-  tailwindcss@4.2.1: {}
+  tailwindcss@4.2.2: {}
 
   tar@7.5.11:
     dependencies:
