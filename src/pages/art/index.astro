@@ -13,7 +13,7 @@ arts.forEach((art) => {
 });
 ---
 
-<BaseLayout logoTitle="thefireks //freelance" siteMainTitle="Art" theme="art">
+<BaseLayout siteMainTitle="Art" theme="art">
   <ContentContainer heading="Artworks collections">
     <p>
       Here are <strong>{arts.length}</strong> art & commissions collections with total of 
@@ -21,10 +21,7 @@ arts.forEach((art) => {
     </p>
   </ContentContainer>
 
-  <div
-    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
-    transition:animate="initial"
-  >
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
     {arts.map((art) => <ArtCard art={art} />)}
   </div>
 </BaseLayout>

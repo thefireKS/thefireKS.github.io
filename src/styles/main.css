@@ -1,6 +1,6 @@
-@import url("themes.css");
-@tailwind base;
-@tailwind components;
+@config "../../tailwind.config.mjs";
+@import "tailwindcss";
+@import "./themes.css";
 
 /* Register your custom font family and tell the browser where to find it. */
 @font-face {
@@ -32,6 +32,11 @@
 :root[data-theme="games"] {
   --brand-color: #0073d1;
   --brand-color-secondary: #22eeda;
+}
+
+:root[data-theme="comics"] {
+  --brand-color: #ff5b6e;
+  --brand-color-secondary: #ffd166;
 }
 
 @layer base {
@@ -75,11 +80,286 @@
     color: transparent;
   }
 
-  .grid-sidebar-layout {
-    grid-template-columns: 16rem 1fr;
+  .site-shell {
+    display: grid;
+    gap: 0.5rem;
   }
 
-  .grid-two-column {
-    grid-template-columns: 180px 1fr;
+  @media (min-width: 1024px) {
+    .site-shell {
+      grid-template-columns: 16rem minmax(0, 1fr);
+    }
+  }
+
+  .identity-stage {
+    --identity-focus: 35%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .identity-dialogue-panel,
+  .identity-portrait-panel {
+    border: 2px solid #ffffff18;
+    border-radius: 1rem;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, #ffffff14, transparent 36%),
+      linear-gradient(160deg, #1e1827 0%, #121823 100%);
+    box-shadow: 0 24px 48px #00000026;
+  }
+
+  .identity-dialogue-panel {
+    padding: 1.4rem;
+  }
+
+  .identity-kicker,
+  .identity-portrait-kicker {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.68rem;
+    color: #f8d7d0;
+    opacity: 0.82;
+  }
+
+  .identity-dialogue-panel h3,
+  .identity-portrait-copy h4 {
+    margin: 0.45rem 0 0;
+    font-family: "PixeloidSans", sans-serif;
+    font-size: clamp(1.1rem, 1rem + 0.8vw, 1.65rem);
+    line-height: 1.3;
+  }
+
+  .identity-lead,
+  .identity-portrait-copy p,
+  .speech-bubble p,
+  .identity-slider-description {
+    margin: 0;
+    line-height: 1.65;
+    color: #f6ebe8;
+  }
+
+  .identity-lead {
+    margin-top: 0.85rem;
+  }
+
+  .identity-dialogue {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1.15rem;
+  }
+
+  .speech-bubble {
+    border-radius: 1rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid #ffffff12;
+    background:
+      linear-gradient(135deg, #ffffff14, transparent 80%),
+      #100c15;
+  }
+
+  .speech-bubble-person {
+    margin-right: 10%;
+    border-color: #ce203f4d;
+  }
+
+  .speech-bubble-studio {
+    margin-left: 10%;
+    border-color: #eb820a52;
+    background:
+      linear-gradient(135deg, #ffffff14, transparent 80%),
+      #171117;
+  }
+
+  .speech-author {
+    display: inline-block;
+    margin-bottom: 0.55rem;
+    font-family: "PixeloidSans", sans-serif;
+    letter-spacing: 0.08em;
+  }
+
+  .identity-slider-panel {
+    margin-top: 1.2rem;
+    padding: 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid #ffffff14;
+    background:
+      linear-gradient(
+        90deg,
+        #ce203f26 0%,
+        #ce203f26 var(--identity-focus),
+        #eb820a26 var(--identity-focus),
+        #eb820a26 100%
+      ),
+      #0d1218;
+  }
+
+  .identity-slider-copy {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .identity-slider-label {
+    margin: 0;
+    font-family: "PixeloidSans", sans-serif;
+    font-size: 0.92rem;
+  }
+
+  .identity-slider-shell {
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .identity-slider {
+    width: 100%;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    cursor: ew-resize;
+  }
+
+  .identity-slider::-webkit-slider-runnable-track {
+    height: 0.45rem;
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        90deg,
+        #ce203f 0%,
+        #ce203f var(--identity-focus),
+        #eb820a var(--identity-focus),
+        #eb820a 100%
+      );
+  }
+
+  .identity-slider::-moz-range-track {
+    height: 0.45rem;
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        90deg,
+        #ce203f 0%,
+        #ce203f var(--identity-focus),
+        #eb820a var(--identity-focus),
+        #eb820a 100%
+      );
+  }
+
+  .identity-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: -0.275rem;
+    border: 2px solid #fff5ef;
+    border-radius: 999px;
+    background: #121823;
+    box-shadow: 0 0 0 3px #ffffff26;
+  }
+
+  .identity-slider::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #fff5ef;
+    border-radius: 999px;
+    background: #121823;
+    box-shadow: 0 0 0 3px #ffffff26;
+  }
+
+  .identity-slider-thumb {
+    position: absolute;
+    top: 50%;
+    left: var(--identity-focus);
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid #fff5ef;
+    border-radius: 999px;
+    background: #0d1218;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 0 0 4px #ffffff1c;
+  }
+
+  .identity-slider-scale {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.55rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    opacity: 0.76;
+  }
+
+  .identity-portrait-panel {
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .identity-portrait-frame {
+    position: relative;
+    margin: 1rem 1rem 0;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    background:
+      linear-gradient(135deg, #ce203f, #eb820a 75%),
+      #16131a;
+  }
+
+  .identity-portrait-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0.75rem;
+    border: 2px solid #ffffff29;
+    border-radius: 0.7rem;
+    pointer-events: none;
+  }
+
+  .identity-portrait-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.7rem;
+    object-fit: cover;
+    background: #0f141d;
+  }
+
+  .identity-portrait-copy {
+    padding: 1rem 1.15rem 1.25rem;
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+  }
+
+  @media (max-width: 920px) {
+    .identity-stage {
+      grid-template-columns: 1fr;
+    }
+
+    .speech-bubble-person,
+    .speech-bubble-studio {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .identity-dialogue-panel,
+    .identity-portrait-panel {
+      border-radius: 0.85rem;
+    }
+
+    .identity-dialogue-panel {
+      padding: 1rem;
+    }
+
+    .identity-slider-panel {
+      padding: 0.9rem;
+    }
+
+    .identity-slider-scale {
+      font-size: 0.66rem;
+      letter-spacing: 0.12em;
+    }
   }
 }

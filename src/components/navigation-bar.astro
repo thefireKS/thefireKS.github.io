@@ -19,9 +19,19 @@ const links = [
     icon: "pixelarticons:image-gallery",
   },
   {
+    name: "Comics",
+    path: "/comics",
+    icon: "pixelarticons:book",
+  },
+  {
     name: "Games",
     path: "/games",
     icon: "pixelarticons:gamepad",
+  },
+  {
+    name: "Prototype",
+    path: "/emoticons-prototype",
+    icon: "pixelarticons:play",
   },
 ];
 
@@ -73,12 +83,6 @@ const isCurrentPage = (url: string) => {
   <!-- Footer -->
   <Footer />
 </nav>
-
-<style>
-  a[aria-current="page"] {
-    view-transition-name: current-page;
-  }
-</style>
 
 <script>
   document.addEventListener("astro:page-load", () => {

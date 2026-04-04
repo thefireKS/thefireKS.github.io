@@ -1,0 +1,137 @@
+---
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import type { ComicWithChapters } from "$api/comics";
+import ChapterCard from "$components/chapter-card.astro";
+import ContentContainer from "$components/content-container.astro";
+import BaseLayout from "$components/layouts/base-layout.astro";
+import {
+  formatComicDate,
+  getChapterSlug,
+  getComicCoverAlt,
+  getComicsIndex,
+} from "$api/comics";
+
+export async function getStaticPaths() {
+  const comics = await getComicsIndex();
+
+  return comics.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: ComicWithChapters };
+const { comic, chapters, latestChapter, firstChapter } = entry;
+
+const statusLabel = {
+  ongoing: "Ongoing",
+  completed: "Completed",
+  hiatus: "Hiatus",
+}[comic.data.status];
+---
+
+<BaseLayout theme="comics" siteMainTitle={`${comic.data.title} | Comics`}>
+  <a
+    href="/comics"
+    class="inline-flex items-center gap-2 rounded-full border border-highlight px-4 py-2 text-sm text-white/80 hover:bg-surface-hover"
+  >
+    <Icon name="pixelarticons:arrow-left" class="text-base text-brand" />
+    Back to comics
+  </a>
+
+  <section class="grid gap-6 xl:grid-cols-[320px_1fr] xl:items-start">
+    <div class="overflow-hidden rounded-[1.5rem] border-2 border-highlight bg-surface-hover">
+      <div class="aspect-[3/4]">
+        <Image
+          src={comic.data.cover}
+          alt={getComicCoverAlt(comic)}
+          class="h-full w-full object-cover"
+        />
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <ContentContainer heading={comic.data.title}>
+        <div class="space-y-4">
+          <p class="leading-relaxed text-white/80">{comic.data.description}</p>
+
+          <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-white/70">
+            <span class="rounded-full border border-highlight px-3 py-2">
+              {statusLabel}
+            </span>
+            <span class="rounded-full border border-highlight px-3 py-2">
+              {chapters.length} chapters
+            </span>
+            {
+              latestChapter ? (
+                <span class="rounded-full border border-highlight px-3 py-2">
+                  Updated {formatComicDate(latestChapter.data.releaseDate)}
+                </span>
+              ) : null
+            }
+          </div>
+
+          {
+            comic.data.tags.length > 0 ? (
+              <div class="flex flex-wrap gap-2 text-sm text-white/75">
+                {comic.data.tags.map((tag) => (
+                  <span class="rounded-full bg-surface px-3 py-1">{tag}</span>
+                ))}
+              </div>
+            ) : null
+          }
+        </div>
+      </ContentContainer>
+
+      <div class="flex flex-wrap gap-3">
+        {
+          firstChapter ? (
+            <a
+              href={`/comics/${entry.slug}/${getChapterSlug(firstChapter)}`}
+              class="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-bold uppercase tracking-[0.15em] text-black"
+            >
+              <Icon name="pixelarticons:play" class="text-base" />
+              Start reading
+            </a>
+          ) : null
+        }
+        {
+          latestChapter && firstChapter?.id !== latestChapter.id ? (
+            <a
+              href={`/comics/${entry.slug}/${getChapterSlug(latestChapter)}`}
+              class="inline-flex items-center gap-2 rounded-full border border-highlight px-5 py-3 text-sm uppercase tracking-[0.15em] text-white/80 hover:bg-surface-hover"
+            >
+              <Icon name="pixelarticons:reload" class="text-base text-brand" />
+              Latest chapter
+            </a>
+          ) : null
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <h2 class="flex items-center gap-2 text-xl font-heading">
+      <Icon name="pixelarticons:book" class="text-brand" />
+      <span class="gradient-text">Chapters</span>
+    </h2>
+
+    {
+      chapters.length > 0 ? (
+        <div class="grid gap-4">
+          {chapters.map((chapter, index) => (
+            <ChapterCard chapter={chapter} isLatest={index === 0} />
+          ))}
+        </div>
+      ) : (
+        <ContentContainer heading="No chapters yet">
+          <p>
+            Add chapter configs in <code>src/content/comicChapters/{entry.slug}</code>{" "}
+            and upload page images to <code>src/assets/comics/{entry.slug}</code>.
+          </p>
+        </ContentContainer>
+      )
+    }
+  </section>
+</BaseLayout>

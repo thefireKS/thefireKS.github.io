@@ -38,3 +38,12 @@
   --brand-color: #394c8e;
   --brand-color-secondary: #5399cc;
 }
+
+[data-theme="comics"] {
+  --surface-bg: #150f16;
+  --surface-color: #1d1720;
+  --surface-hover: #2a202f;
+  --highlight: #433248;
+  --brand-color: #ff5b6e;
+  --brand-color-secondary: #ffd166;
+}

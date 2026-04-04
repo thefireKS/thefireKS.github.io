@@ -8,7 +8,7 @@ import Section from "$components/section.astro";
 const result = await getAllGames();
 ---
 
-<BaseLayout logoTitle="halfwaypixel //studio" siteMainTitle="Games" theme="games">
+<BaseLayout siteMainTitle="Games" theme="games">
   <ContentContainer heading="Published games">
     <p>
       I posted <strong>{result?.games.length}</strong> games on my itch.io page, but actually there's more!

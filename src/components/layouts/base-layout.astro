@@ -1,16 +1,15 @@
 ---
 import "$styles/main.css";
 import NavigationBar from "$components/navigation-bar.astro";
-import type { ComponentProps } from "astro/types";
 import { siteDetails } from "site.config";
-import { ViewTransitions } from "astro:transitions";
 
 interface Props {
   siteMainTitle?: string;
   logoTitle?: string;
+  theme?: string;
 }
 
-const { logoTitle, siteMainTitle, theme } = Astro.props;
+const { logoTitle = siteDetails.siteTitle, siteMainTitle, theme } = Astro.props;
 ---
 
 <html lang="en" data-theme={theme}>
@@ -24,7 +23,6 @@ const { logoTitle, siteMainTitle, theme } = Astro.props;
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
-    <ViewTransitions />
     {
       siteMainTitle ? (
         <title>
@@ -35,12 +33,12 @@ const { logoTitle, siteMainTitle, theme } = Astro.props;
       )
     }
   </head>
-  <body class="lg:container mx-auto md:px-0 grid lg:grid-sidebar-layout gap-2">
+  <body class="site-shell lg:container mx-auto md:px-0">
     <NavigationBar title={logoTitle} />
     <main
       class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
     >
-      <div transition:animate="fade" class="space-y-8 p-4">
+      <div class="space-y-8 p-4">
         <slot />
       </div>
     </main>

@@ -12,7 +12,6 @@ const { art } = Astro.props;
 <a
   href={`/art/${art.data.title.toLowerCase()}`}
   class="overflow-hidden rounded-lg bg-surface-hover"
-  transition:name={art.data.coverAlt}
 >
   <div class="h-64">
     <Image

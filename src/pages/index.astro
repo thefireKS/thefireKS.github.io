@@ -2,54 +2,35 @@
 import BaseLayout from "$components/layouts/base-layout.astro";
 import Section from "$components/section.astro";
 import ContentContainer from "$components/content-container.astro";
-import { Image } from "astro:assets";
-import { getCollection } from "astro:content";
-import FireKSProfilePicture from "$assets/fireks_picture.png";
-import { getAllGames } from "$api/games";
-
-const arts = await getCollection("arts");
-
-const result = await getAllGames();
+import HomeIdentityShowcase from "$components/home-identity-showcase.astro";
 ---
 
-<BaseLayout logoTitle="THFKS | HLFWPXL" siteMainTitle="Base" theme="main">
-  <Section heading="THEFIREKS || HALFWAYPIXEL" icon="pixelarticons:heart">
-    <div
-      class="grid lg:grid-two-column place-items-center lg:place-items-stretch gap-6"
-    >
-      <div class="overflow-hidden rounded-lg w-48 order-last lg:order-first">
-        <Image src={FireKSProfilePicture} alt="Picture" class="w-full h-full" />
-      </div>
-      <ContentContainer heading="Welcome!">
-        <p>
-            Hello! I'm an independent game developer and a freelance artist, performing in lots of 
-            different roles. Here you can see my artworks, games that i made/help to develop, design, publish, etc.
-            If you have any questions - feel free to contact me! 
-        </p>
-      </ContentContainer>
-    </div>
+<BaseLayout siteMainTitle="Base" theme="main">
+  <Section heading="Welcome!" icon="pixelarticons:heart">
+    <HomeIdentityShowcase />
   </Section>
   <Section>
-  <ContentContainer heading="Contact me">
-    <div class="flex gap-3">
-      <a
-        href="https://t.me/thefireKS"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex-1 text-center px-4 py-3 rounded-lg bg-[#509fe2] text-white hover:bg-[#264c6c] transition font-medium"
-      >
-        Telegram
-      </a>
-      <a
-        href="mailto:halfwaypixel@gmail.com"
-        class="flex-1 text-center px-4 py-3 rounded-lg bg-[#b8acac] text-white hover:bg-[#78605e] transition font-medium"
-      >
-        Email
-      </a>
-    </div>
-  </ContentContainer>
-</Section>
-    <Section heading="Developed games & demos showcase" icon="pixelarticons:play">
+    <ContentContainer heading="Contact with thefireks">
+      <div class="flex gap-3">
+        <a
+          href="https://t.me/thefireKS"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 text-center px-4 py-3 rounded-lg bg-[#509fe2] text-white hover:bg-[#264c6c] transition font-medium"
+        >
+          Telegram
+        </a>
+        <a
+          href="mailto:halfwaypixel@gmail.com"
+          class="flex-1 text-center px-4 py-3 rounded-lg bg-[#b8acac] text-white hover:bg-[#78605e] transition font-medium"
+        >
+          Email
+        </a>
+      </div>
+    </ContentContainer>
+  </Section>
+  <!--
+  <Section heading="Developed games & demos showcase" icon="pixelarticons:play">
     <div class="aspect-video max-w-3xl mx-auto rounded-lg overflow-hidden shadow-lg">
       <iframe
         width="100%"
@@ -62,10 +43,5 @@ const result = await getAllGames();
       ></iframe>
     </div>
   </Section>
+  --->
 </BaseLayout>
-
-<style>
-  .grid-two-column {
-    grid-template-columns: 180px 1fr;
-  }
-</style>

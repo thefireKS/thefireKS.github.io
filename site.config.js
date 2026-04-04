@@ -1,4 +1,5 @@
 export const siteDetails = {
-  siteTitle: "THFKS | HLFWPXL",
-  siteDescription: "Portfolio of thefireKS AKA halfwaypixel",
+  siteTitle: "thefireks",
+  siteDescription:
+    "Hi, I'm thefireks. Halfwaypixel is the studio identity behind my games, art, comics, and prototypes.",
 };

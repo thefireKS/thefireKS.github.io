@@ -1,14 +1,21 @@
 ---
 interface Props {
   title?: string;
+  subtitle?: string;
 }
 
-const { title = "title" } = Astro.props;
+const {
+  title = "halfwaypixel studio",
+  subtitle = "ran by thefireks",
+} = Astro.props;
 ---
 
 <a
   href="/"
-  class="font-heading text-2xl font-bold gradient-text uppercase tracking-wide w-full lg:text-center"
+  class="flex w-full flex-col gap-1 lg:text-center"
 >
-  {title}
+  <span class="font-heading text-2xl font-bold tracking-wide">
+    <span class="text-brand">{title}</span>
+  </span>
+  <span class="text-sm uppercase tracking-[0.28em] text-white/72">{subtitle}</span>
 </a>

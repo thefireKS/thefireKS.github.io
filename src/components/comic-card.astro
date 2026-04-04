@@ -1,0 +1,101 @@
+---
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import type { ComicWithChapters } from "$api/comics";
+import { formatComicDate, getComicCoverAlt, getComicHref } from "$api/comics";
+
+interface Props {
+  entry: ComicWithChapters;
+}
+
+const { entry } = Astro.props;
+const { comic, chapters, latestChapter } = entry;
+
+const statusLabel = {
+  ongoing: "Ongoing",
+  completed: "Completed",
+  hiatus: "Hiatus",
+}[comic.data.status];
+
+const chapterCountLabel = chapters.length === 1 ? "chapter" : "chapters";
+---
+
+<article class="h-full">
+  <a
+    href={getComicHref(comic)}
+    class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-highlight bg-surface-hover transition-transform duration-300 hover:-translate-y-1"
+  >
+    <div class="aspect-[3/4] overflow-hidden bg-surface">
+      <Image
+        src={comic.data.cover}
+        alt={getComicCoverAlt(comic)}
+        class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+      />
+    </div>
+
+    <div class="flex flex-1 flex-col gap-4 p-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="space-y-1">
+          <h3 class="text-xl font-heading text-brand-secondary">{comic.data.title}</h3>
+          <p class="text-xs uppercase tracking-[0.2em] text-white/60">{statusLabel}</p>
+        </div>
+        <Icon
+          name="pixelarticons:arrow-right"
+          class="mt-1 shrink-0 text-xl text-brand transition-transform group-hover:translate-x-1"
+        />
+      </div>
+
+      <p class="text-sm leading-relaxed text-white/80">{comic.data.description}</p>
+
+      {
+        comic.data.tags.length > 0 ? (
+          <div class="flex flex-wrap gap-2 text-xs">
+            {comic.data.tags.map((tag) => (
+              <span class="rounded-full border border-highlight px-2 py-1 uppercase tracking-[0.15em] text-white/70">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null
+      }
+
+      <div class="mt-auto grid gap-3 rounded-xl bg-surface/60 p-3 text-sm">
+        <div class="flex items-center justify-between gap-2 text-white/75">
+          <span class="flex items-center gap-2">
+            <Icon name="pixelarticons:book" class="text-base text-brand" />
+            {chapters.length} {chapterCountLabel}
+          </span>
+          {
+            latestChapter ? (
+              <span>{formatComicDate(latestChapter.data.releaseDate)}</span>
+            ) : (
+              <span>Waiting for update</span>
+            )
+          }
+        </div>
+
+        {
+          latestChapter ? (
+            <span class="font-heading text-brand-secondary">
+              Latest: Chapter {latestChapter.data.chapterNumber}{" "}
+              <span class="text-white/70">{latestChapter.data.title}</span>
+            </span>
+          ) : (
+            <span class="font-heading text-white/60">No chapters published yet.</span>
+          )
+        }
+      </div>
+
+      {
+        latestChapter ? (
+          <span
+            class="inline-flex items-center gap-2 self-start rounded-full bg-brand px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-black"
+          >
+            <Icon name="pixelarticons:play" class="text-base" />
+            <span>Read latest</span>
+          </span>
+        ) : null
+      }
+    </div>
+  </a>
+</article>
