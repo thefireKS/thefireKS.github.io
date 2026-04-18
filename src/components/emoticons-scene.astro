@@ -1,6 +1,4 @@
 ---
-import BaseLayout from "$components/layouts/base-layout.astro";
-
 type BallTextureAnimationConfig = {
   columns: number;
   rows: number;
@@ -14,6 +12,14 @@ type BallTextureDescriptor = {
   url: string;
   animation: BallTextureAnimationConfig | null;
 };
+
+interface Props {
+  mode?: "default" | "background";
+  showHeader?: boolean;
+}
+
+const { mode = "default", showHeader = mode !== "background" } = Astro.props;
+const isBackground = mode === "background";
 
 const uploadedTextureModules = import.meta.glob(
   "../assets/ball-textures/*.{png,jpg,jpeg,webp,avif,gif}",
@@ -143,44 +149,51 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
   .sort((left, right) => left.name.localeCompare(right.name));
 ---
 
-<BaseLayout siteMainTitle="Emoticons Prototype" theme="main">
-  <section class="scene-wrapper">
-    <header class="scene-header">
-      <h1>Emoticons Scene Prototype</h1>
-      <p>
-        Garage-style door, thin container geometry, real physics, and ball textures
-        loaded from <code>src/assets/ball-textures</code>. Add an optional
-        <code>&lt;texture-name&gt;.atlas.json</code> next to a sheet when it should
-        animate.
-      </p>
-    </header>
+<section
+  class:list={["scene-wrapper", isBackground && "scene-wrapper--background"]}
+  aria-hidden={isBackground ? "true" : undefined}
+>
+  {
+    showHeader && (
+      <header class="scene-header">
+        <h1>Emoticons Scene Prototype</h1>
+        <p>
+          Garage-style door, thin container geometry, real physics, and ball
+          textures loaded from <code>src/assets/ball-textures</code>. Add an
+          optional <code>&lt;texture-name&gt;.atlas.json</code> next to a sheet
+          when it should animate.
+        </p>
+      </header>
+    )
+  }
 
-    <div class="scene-stage">
-      <div
-        id="emoji-scene-host"
-        class="scene-host"
-        data-textures={JSON.stringify(ballTextureDescriptors)}
-      ></div>
-      <div class="scene-hud">
-        Spawned balls: <span id="spawn-counter">0 / 108</span>
-      </div>
-    </div>
-  </section>
-</BaseLayout>
+  <div class="scene-stage">
+    <div
+      class="scene-host"
+      data-emoticons-scene-host
+      data-scene-mode={mode}
+      data-textures={JSON.stringify(ballTextureDescriptors)}
+    ></div>
+  </div>
+</section>
 
 <script type="module">
   import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
-  import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js";
 
-  const host = document.getElementById("emoji-scene-host");
-  if (host && host.dataset.initialized !== "true") {
+  const hosts = document.querySelectorAll("[data-emoticons-scene-host]");
+  for (const host of hosts) {
+    if (host.dataset.initialized === "true") {
+      continue;
+    }
+
     host.dataset.initialized = "true";
     initScene(host);
   }
 
   function initScene(hostEl) {
-    const counterEl = document.getElementById("spawn-counter");
     const textureDescriptors = JSON.parse(hostEl.dataset.textures || "[]");
+    const sceneMode = hostEl.dataset.sceneMode || "default";
+    const isBackground = sceneMode === "background";
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -191,8 +204,8 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     hostEl.append(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x140c2b);
-    scene.fog = new THREE.Fog(0x140c2b, 10, 26);
+    scene.background = new THREE.Color(0x322a2a);
+    scene.fog = new THREE.Fog(0x322a2a, 10, 26);
 
     const camera = new THREE.PerspectiveCamera(
       44,
@@ -200,8 +213,14 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
       0.1,
       100,
     );
-    camera.position.set(0, 2.1, 7.2);
-    camera.lookAt(0, 0.7, 0.6);
+
+    if (isBackground) {
+      camera.position.set(0, 2.5, 8.2);
+      camera.lookAt(0, 0.7, 1.0);
+    } else {
+      camera.position.set(0, 2.1, 7.2);
+      camera.lookAt(0, 0.7, 0.6);
+    }
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.48);
     scene.add(ambient);
@@ -216,211 +235,14 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     const keyLight = new THREE.DirectionalLight(0xfff4e8, 1.35);
     keyLight.position.set(-6.2, 8.4, 10.8);
     keyLight.target = keyLightTarget;
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.set(2048, 2048);
-    keyLight.shadow.camera.near = 0.5;
-    keyLight.shadow.camera.far = 40;
-    keyLight.shadow.camera.left = -12;
-    keyLight.shadow.camera.right = 12;
-    keyLight.shadow.camera.top = 12;
-    keyLight.shadow.camera.bottom = -12;
     scene.add(keyLight);
 
     const fillLight = new THREE.PointLight(0xff8b6a, 0.42, 20, 2);
     fillLight.position.set(0, 2.5, 6.8);
     scene.add(fillLight);
 
-    const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
-    world.broadphase = new CANNON.SAPBroadphase(world);
-    world.allowSleep = true;
-
-    const ballPhysicsMaterial = new CANNON.Material("ball");
-    const wallPhysicsMaterial = new CANNON.Material("wall");
-
-    world.addContactMaterial(
-      new CANNON.ContactMaterial(ballPhysicsMaterial, wallPhysicsMaterial, {
-        friction: 0.24,
-        restitution: 0.18,
-      }),
-    );
-
-    world.defaultContactMaterial.friction = 0.28;
-    world.defaultContactMaterial.restitution = 0.08;
-
-    const boxMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4f4276,
-      roughness: 0.9,
-      metalness: 0.03,
-    });
-
-    const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x3f355f,
-      roughness: 0.94,
-      metalness: 0.02,
-    });
-
-    function addStaticBox(size, position, rotation, visualMaterial) {
-      const [sx, sy, sz] = size;
-      const [px, py, pz] = position;
-      const [rx, ry, rz] = rotation;
-
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(sx, sy, sz),
-        visualMaterial,
-      );
-      mesh.position.set(px, py, pz);
-      mesh.rotation.set(rx, ry, rz);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
-
-      const body = new CANNON.Body({
-        mass: 0,
-        shape: new CANNON.Box(new CANNON.Vec3(sx / 2, sy / 2, sz / 2)),
-        material: wallPhysicsMaterial,
-      });
-      body.position.set(px, py, pz);
-      body.quaternion.setFromEuler(rx, ry, rz);
-      world.addBody(body);
-    }
-
-    const groundY = -0.5;
-    const boxWidth = 4.0;
-    const boxDepth = 3.0;
-    const boxCenterZ = 0.5;
-    const wallHeight = 2.0;
-    const wallThickness = 0.03;
-
-    // Large world floor.
-    addStaticBox([16, 0.2, 16], [0, groundY - 0.1, 2.2], [0, 0, 0], floorMaterial);
-
-    // Thin box geometry aligned with floor level.
-    addStaticBox(
-      [boxWidth, wallThickness, boxDepth],
-      [0, groundY - wallThickness / 2, boxCenterZ],
-      [0, 0, 0],
-      boxMaterial,
-    );
-
-    addStaticBox(
-      [wallThickness, wallHeight, boxDepth],
-      [-boxWidth / 2 - wallThickness / 2, groundY + wallHeight / 2, boxCenterZ],
-      [0, 0, 0],
-      boxMaterial,
-    );
-
-    addStaticBox(
-      [wallThickness, wallHeight, boxDepth],
-      [boxWidth / 2 + wallThickness / 2, groundY + wallHeight / 2, boxCenterZ],
-      [0, 0, 0],
-      boxMaterial,
-    );
-
-    addStaticBox(
-      [boxWidth + wallThickness * 2, wallHeight, wallThickness],
-      [0, groundY + wallHeight / 2, boxCenterZ - boxDepth / 2 - wallThickness / 2],
-      [0, 0, 0],
-      boxMaterial,
-    );
-
-    // Rollout plane outside the door.
-    const doorPlaneZ = boxCenterZ + boxDepth / 2 + wallThickness / 2;
-    addStaticBox(
-      [boxWidth + 0.3, 0.08, 2.0],
-      [0, groundY - 0.18, doorPlaneZ + 1.15],
-      [0.16, 0, 0],
-      floorMaterial,
-    );
-
-    // Extra outside area for rolling balls.
-    addStaticBox(
-      [12, 0.08, 12],
-      [0, groundY - 0.52, doorPlaneZ + 5.0],
-      [0, 0, 0],
-      floorMaterial,
-    );
-
-    const topFrameMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(boxWidth + 0.38, 0.14, 0.18),
-      new THREE.MeshStandardMaterial({
-        color: 0x2f214b,
-        roughness: 0.85,
-        metalness: 0.06,
-      }),
-    );
-    topFrameMesh.position.set(0, groundY + wallHeight + 0.08, doorPlaneZ);
-    topFrameMesh.castShadow = true;
-    topFrameMesh.receiveShadow = true;
-    scene.add(topFrameMesh);
-
-    const doorPivot = new THREE.Group();
-    doorPivot.position.set(0, groundY + wallHeight, doorPlaneZ);
-    scene.add(doorPivot);
-
-    const doorWidth = boxWidth + wallThickness * 2;
-    const doorHeight = wallHeight;
-    const doorThickness = 0.07;
-
-    const doorOuter = new THREE.Mesh(
-      new THREE.BoxGeometry(doorWidth, doorHeight, doorThickness),
-      new THREE.MeshStandardMaterial({
-        color: 0x5f4c87,
-        roughness: 0.7,
-        metalness: 0.05,
-      }),
-    );
-    doorOuter.position.set(0, -doorHeight / 2, 0);
-    doorOuter.castShadow = true;
-    doorOuter.receiveShadow = true;
-    doorPivot.add(doorOuter);
-
-    const doorInner = new THREE.Mesh(
-      new THREE.PlaneGeometry(doorWidth - 0.22, doorHeight - 0.22),
-      new THREE.MeshStandardMaterial({
-        color: 0x7868a8,
-        roughness: 0.78,
-        metalness: 0.02,
-      }),
-    );
-    doorInner.position.set(0, -doorHeight / 2, -doorThickness / 2 - 0.001);
-    doorPivot.add(doorInner);
-
-    const doorBody = new CANNON.Body({
-      type: CANNON.Body.KINEMATIC,
-      shape: new CANNON.Box(
-        new CANNON.Vec3(doorWidth / 2, doorHeight / 2, doorThickness / 2),
-      ),
-      material: wallPhysicsMaterial,
-    });
-    world.addBody(doorBody);
-
-    const doorLocalOffset = new CANNON.Vec3(0, -doorHeight / 2, 0);
-    const doorWorldOffset = new CANNON.Vec3();
-    const doorQuat = new CANNON.Quaternion();
-
-    function syncDoorBody() {
-      doorQuat.setFromEuler(
-        doorPivot.rotation.x,
-        doorPivot.rotation.y,
-        doorPivot.rotation.z,
-        "XYZ",
-      );
-      doorQuat.vmult(doorLocalOffset, doorWorldOffset);
-
-      doorBody.position.set(
-        doorPivot.position.x + doorWorldOffset.x,
-        doorPivot.position.y + doorWorldOffset.y,
-        doorPivot.position.z + doorWorldOffset.z,
-      );
-      doorBody.quaternion.copy(doorQuat);
-      doorBody.velocity.set(0, 0, 0);
-      doorBody.angularVelocity.set(0, 0, 0);
-    }
-
-    const sphereRadius = 0.18;
     const cubeSide = 0.2;
     const cubeGeometry = new THREE.BoxGeometry(cubeSide, cubeSide, cubeSide);
-    const sphereShape = new CANNON.Sphere(sphereRadius);
 
     const textureLoader = new THREE.TextureLoader();
     const animatedTextures = [];
@@ -480,81 +302,62 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     const spawnState = {
       total: 108,
       spawned: 0,
-      interval: 0.1,
+      interval: 1.05,
       timer: 0,
-      minX: -1.72,
-      maxX: 1.72,
-      minZ: -0.2,
-      maxZ: 0.85,
-      y: 1.95,
+      minX: isBackground ? -3.2 : -2.3,
+      maxX: isBackground ? 3.2 : 2.3,
+      minZ: isBackground ? -1.2 : -0.5,
+      maxZ: isBackground ? 2.2 : 1.3,
+      y: isBackground ? 7.4 : 6.1,
+      initialYVelocity: -0.15,
     };
+    const gravity = -0.1;
+    const despawnY = -14;
 
     function spawnBall() {
       const x = THREE.MathUtils.randFloat(spawnState.minX, spawnState.maxX);
       const z = THREE.MathUtils.randFloat(spawnState.minZ, spawnState.maxZ);
-      const y = spawnState.y + (spawnState.spawned % 4) * 0.035;
+      const y = spawnState.y + (spawnState.spawned % 4) * 0.12;
 
       const material = cubeMaterials[spawnState.spawned % cubeMaterials.length];
 
-      // 1W1-style structure: sphere physics root + textured child cube mesh.
       const root = new THREE.Object3D();
       const cube = new THREE.Mesh(cubeGeometry, material);
-      cube.castShadow = true;
-      cube.receiveShadow = true;
       root.add(cube);
       root.position.set(x, y, z);
       scene.add(root);
 
-      const body = new CANNON.Body({
-        mass: 1,
-        shape: sphereShape,
-        material: ballPhysicsMaterial,
-        linearDamping: 0.01,
-        angularDamping: 0.05,
-      });
-      body.position.set(x, y, z);
-      world.addBody(body);
-
-      balls.push({ root, body });
-
-      spawnState.spawned += 1;
-      if (counterEl) {
-        counterEl.textContent = `${spawnState.spawned} / ${spawnState.total}`;
+      const spinDirection = new THREE.Vector3(
+        THREE.MathUtils.randFloatSpread(2),
+        THREE.MathUtils.randFloatSpread(2),
+        THREE.MathUtils.randFloatSpread(2),
+      );
+      if (spinDirection.lengthSq() < 0.03) {
+        spinDirection.set(0.45, 0.72, -0.51);
       }
+      spinDirection.normalize();
+      const spinSpeed = THREE.MathUtils.randFloat(0.95, 2.6);
+
+      balls.push({
+        root,
+        velocityY:
+          spawnState.initialYVelocity + THREE.MathUtils.randFloat(-0.08, 0.02),
+        spin: spinDirection.multiplyScalar(spinSpeed),
+      });
+      spawnState.spawned += 1;
     }
 
     const clock = new THREE.Clock();
-    const fixedStep = 1 / 60;
-
-    const doorAnimation = {
-      start: 2.0,
-      end: 6.0,
-      angleOpen: THREE.MathUtils.degToRad(-90),
-    };
 
     let rafId = 0;
     let isDisposed = false;
 
+    if (spawnState.total > 0) {
+      spawnBall();
+    }
+
     function animate() {
       const dt = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.elapsedTime;
-
-      if (elapsed <= doorAnimation.start) {
-        doorPivot.rotation.x = 0;
-      } else if (elapsed >= doorAnimation.end) {
-        doorPivot.rotation.x = doorAnimation.angleOpen;
-      } else {
-        const t =
-          (elapsed - doorAnimation.start) /
-          (doorAnimation.end - doorAnimation.start);
-        doorPivot.rotation.x = THREE.MathUtils.lerp(
-          0,
-          doorAnimation.angleOpen,
-          t,
-        );
-      }
-
-      syncDoorBody();
 
       spawnState.timer += dt;
       while (
@@ -565,12 +368,18 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
         spawnState.timer -= spawnState.interval;
       }
 
-      world.step(fixedStep, dt, 3);
-
-      for (let i = 0; i < balls.length; i += 1) {
+      for (let i = balls.length - 1; i >= 0; i -= 1) {
         const item = balls[i];
-        item.root.position.copy(item.body.position);
-        item.root.quaternion.copy(item.body.quaternion);
+        item.velocityY += gravity * dt;
+        item.root.position.y += item.velocityY * dt;
+        item.root.rotation.x += item.spin.x * dt;
+        item.root.rotation.y += item.spin.y * dt;
+        item.root.rotation.z += item.spin.z * dt;
+
+        if (item.root.position.y <= despawnY) {
+          scene.remove(item.root);
+          balls.splice(i, 1);
+        }
       }
 
       for (let i = 0; i < animatedTextures.length; i += 1) {
@@ -603,6 +412,11 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     function onResize() {
       const width = hostEl.clientWidth;
       const height = hostEl.clientHeight;
+
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
@@ -678,18 +492,28 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     height: clamp(420px, 72vh, 820px);
   }
 
-  .scene-hud {
+  .scene-wrapper--background {
     position: absolute;
-    left: 0.75rem;
-    bottom: 0.75rem;
-    padding: 0.45rem 0.7rem;
-    border-radius: 0.4rem;
-    border: 1px solid #ffffff2a;
-    background: #11071dd4;
-    color: #ffd8c0;
-    font-size: 0.9rem;
-    line-height: 1.2;
+    inset: 0;
+    z-index: 0;
     pointer-events: none;
+    display: block;
+    overflow: hidden;
+  }
+
+  .scene-wrapper--background .scene-stage {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    filter: blur(2px) saturate(0.82) brightness(0.8);
+    transform: scale(1.08);
+    transform-origin: center;
+  }
+
+  .scene-wrapper--background .scene-host {
+    min-height: 100%;
+    height: 100%;
   }
 
   @media (max-width: 768px) {
@@ -698,4 +522,3 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     }
   }
 </style>
-

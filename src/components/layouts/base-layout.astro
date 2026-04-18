@@ -36,11 +36,34 @@ const { logoTitle = siteDetails.siteTitle, siteMainTitle, theme } = Astro.props;
   <body class="site-shell lg:container mx-auto md:px-0">
     <NavigationBar title={logoTitle} />
     <main
-      class="lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
+      class="site-main lg:flex-grow bg-surface lg:border-x-2 border-highlight min-h-screen lg:min-h-full"
     >
-      <div class="space-y-8 p-4">
+      <div class="site-main-background" aria-hidden="true">
+        <slot name="main-background" />
+      </div>
+      <div class="site-main-content space-y-8 p-4">
         <slot />
       </div>
     </main>
   </body>
 </html>
+
+<style>
+  .site-main {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .site-main-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .site-main-content {
+    position: relative;
+    z-index: 1;
+  }
+</style>

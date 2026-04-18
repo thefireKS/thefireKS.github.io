@@ -1,6 +1,7 @@
 ---
 import ArtCard from "$components/art-card.astro";
 import ContentContainer from "$components/content-container.astro";
+import EmoticonsScene from "$components/emoticons-scene.astro";
 import BaseLayout from "$components/layouts/base-layout.astro";
 import { getCollection } from "astro:content";
 
@@ -14,9 +15,14 @@ arts.forEach((art) => {
 ---
 
 <BaseLayout siteMainTitle="Art" theme="art">
+  <div slot="main-background" class="art-main-background">
+    <EmoticonsScene mode="background" />
+    <div class="art-main-overlay"></div>
+  </div>
+
   <ContentContainer heading="Artworks collections">
     <p>
-      Here are <strong>{arts.length}</strong> art & commissions collections with total of 
+      Here are <strong>{arts.length}</strong> art & commissions collections with total of
       <strong>{totalImagesCount}</strong> artwors.
     </p>
   </ContentContainer>
@@ -25,3 +31,19 @@ arts.forEach((art) => {
     {arts.map((art) => <ArtCard art={art} />)}
   </div>
 </BaseLayout>
+
+<style>
+  .art-main-background {
+    position: absolute;
+    inset: 0;
+  }
+
+  .art-main-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      linear-gradient(180deg, #1f1919cc 0%, #1f1919d9 56%, #1f1919ee 100%),
+      radial-gradient(circle at 70% 16%, #ffffff14 0%, transparent 46%);
+  }
+</style>
