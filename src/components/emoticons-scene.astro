@@ -205,7 +205,7 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x322a2a);
-    scene.fog = new THREE.Fog(0x322a2a, 10, 26);
+    scene.fog = new THREE.Fog(0xffffff, 10, 26);
 
     const camera = new THREE.PerspectiveCamera(
       44,
@@ -299,52 +299,90 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
         : [new THREE.MeshStandardMaterial({ color: 0xf2d96b })];
 
     const balls = [];
-    const spawnState = {
-      total: 108,
-      spawned: 0,
-      interval: 1.05,
-      timer: 0,
+    const waterfallState = {
+      count: isBackground ? 128 : 24,
       minX: isBackground ? -3.2 : -2.3,
       maxX: isBackground ? 3.2 : 2.3,
-      minZ: isBackground ? -1.2 : -0.5,
-      maxZ: isBackground ? 2.2 : 1.3,
-      y: isBackground ? 7.4 : 6.1,
-      initialYVelocity: -0.15,
+      z: isBackground ? 3 : 0.8,
+      topY: isBackground ? 3.9 : 3.2,
+      bottomY: isBackground ? -3.9 : -3.2,
+      fallSpeed: 0.92,
     };
-    const gravity = -0.1;
-    const despawnY = -14;
+    const waterfallSpanY = waterfallState.topY - waterfallState.bottomY;
+    const xCellCount = isBackground ? 16 : 6;
+    const xCellWidth = (waterfallState.maxX - waterfallState.minX) / xCellCount;
+    let xCellOrder = [];
+    let xCellCursor = 0;
 
-    function spawnBall() {
-      const x = THREE.MathUtils.randFloat(spawnState.minX, spawnState.maxX);
-      const z = THREE.MathUtils.randFloat(spawnState.minZ, spawnState.maxZ);
-      const y = spawnState.y + (spawnState.spawned % 4) * 0.12;
+    function buildShuffledIndices(size) {
+      const indices = Array.from({ length: size }, (_, index) => index);
 
-      const material = cubeMaterials[spawnState.spawned % cubeMaterials.length];
+      for (let i = indices.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const swap = indices[i];
+        indices[i] = indices[j];
+        indices[j] = swap;
+      }
 
-      const root = new THREE.Object3D();
-      const cube = new THREE.Mesh(cubeGeometry, material);
-      root.add(cube);
-      root.position.set(x, y, z);
-      scene.add(root);
+      return indices;
+    }
 
+    function nextGridX() {
+      if (xCellOrder.length === 0 || xCellCursor >= xCellOrder.length) {
+        xCellOrder = buildShuffledIndices(xCellCount);
+        xCellCursor = 0;
+      }
+
+      const cellIndex = xCellOrder[xCellCursor];
+      xCellCursor += 1;
+
+      const baseX = waterfallState.minX + (cellIndex + 0.5) * xCellWidth;
+      const jitter = THREE.MathUtils.randFloat(-xCellWidth * 0.22, xCellWidth * 0.22);
+      return THREE.MathUtils.clamp(baseX + jitter, waterfallState.minX, waterfallState.maxX);
+    }
+
+    function createSpinVector() {
       const spinDirection = new THREE.Vector3(
         THREE.MathUtils.randFloatSpread(2),
         THREE.MathUtils.randFloatSpread(2),
         THREE.MathUtils.randFloatSpread(2),
       );
+
       if (spinDirection.lengthSq() < 0.03) {
         spinDirection.set(0.45, 0.72, -0.51);
       }
+
       spinDirection.normalize();
       const spinSpeed = THREE.MathUtils.randFloat(0.95, 2.6);
+      return spinDirection.multiplyScalar(spinSpeed);
+    }
 
-      balls.push({
+    function recycleBall(ball) {
+      ball.root.position.y += waterfallSpanY;
+      ball.root.position.x = nextGridX();
+      ball.root.position.z = waterfallState.z;
+      ball.fallSpeed = waterfallState.fallSpeed;
+      ball.spin.copy(createSpinVector());
+    }
+
+    function spawnBall(initialY) {
+      const material = cubeMaterials[balls.length % cubeMaterials.length];
+
+      const root = new THREE.Object3D();
+      const cube = new THREE.Mesh(cubeGeometry, material);
+      root.add(cube);
+      scene.add(root);
+
+      const ball = {
         root,
-        velocityY:
-          spawnState.initialYVelocity + THREE.MathUtils.randFloat(-0.08, 0.02),
-        spin: spinDirection.multiplyScalar(spinSpeed),
-      });
-      spawnState.spawned += 1;
+        fallSpeed: 0,
+        spin: new THREE.Vector3(),
+      };
+
+      ball.root.position.set(nextGridX(), initialY, waterfallState.z);
+      ball.fallSpeed = waterfallState.fallSpeed;
+      ball.spin.copy(createSpinVector());
+      balls.push(ball);
     }
 
     const clock = new THREE.Clock();
@@ -352,33 +390,28 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     let rafId = 0;
     let isDisposed = false;
 
-    if (spawnState.total > 0) {
-      spawnBall();
+    const initialYOrder = buildShuffledIndices(waterfallState.count);
+    const initialYStep = (waterfallState.topY - waterfallState.bottomY) / waterfallState.count;
+
+    for (let i = 0; i < waterfallState.count; i += 1) {
+      const ySlot = initialYOrder[i];
+      const yJitter = THREE.MathUtils.randFloat(-initialYStep * 0.18, initialYStep * 0.18);
+      const initialY = waterfallState.bottomY + (ySlot + 0.5) * initialYStep + yJitter;
+      spawnBall(initialY);
     }
 
     function animate() {
       const dt = Math.min(clock.getDelta(), 0.05);
 
-      spawnState.timer += dt;
-      while (
-        spawnState.timer >= spawnState.interval &&
-        spawnState.spawned < spawnState.total
-      ) {
-        spawnBall();
-        spawnState.timer -= spawnState.interval;
-      }
-
       for (let i = balls.length - 1; i >= 0; i -= 1) {
         const item = balls[i];
-        item.velocityY += gravity * dt;
-        item.root.position.y += item.velocityY * dt;
+        item.root.position.y -= item.fallSpeed * dt;
         item.root.rotation.x += item.spin.x * dt;
         item.root.rotation.y += item.spin.y * dt;
         item.root.rotation.z += item.spin.z * dt;
 
-        if (item.root.position.y <= despawnY) {
-          scene.remove(item.root);
-          balls.splice(i, 1);
+        if (item.root.position.y <= waterfallState.bottomY) {
+          recycleBall(item);
         }
       }
 
