@@ -16,18 +16,15 @@ import FireKSProfilePicture from "$assets/fireks_picture.png";
     -->
     <div class="identity-dialogue">
       <article class="speech-bubble speech-bubble-person">
-        <span class="speech-author">thefireks</span>
+        <span class="speech-author">fireks</span>
         <p>
-          When you land here, you are meeting the person first: the one drawing,
-          designing, prototyping, shipping, and answering messages.
+          Yo, can we show something cool here? Like, it's the main page guys!
         </p>
       </article>
-
       <article class="speech-bubble speech-bubble-studio">
         <span class="speech-author">halfwaypixel</span>
         <p>
-          Think of me as the studio banner above those projects. I am how the work
-          gets framed, packaged, and published.
+          Sure.
         </p>
         <video
           class="identity-inline-video"
@@ -35,7 +32,6 @@ import FireKSProfilePicture from "$assets/fireks_picture.png";
           muted
           loop
           playsinline
-          controls
           preload="metadata"
         >
           <source src="/videos/temp-identity-banner.webm" type="video/webm" />
@@ -43,12 +39,10 @@ import FireKSProfilePicture from "$assets/fireks_picture.png";
           Your browser does not support the video tag.
         </video>
       </article>
-
       <article class="speech-bubble speech-bubble-person">
-        <span class="speech-author">thefireks</span>
+        <span class="speech-author">fireks</span>
         <p>
-          SampleText
-          Like that
+          Heeeell yeaahhh!!!1
         </p>
       </article>
     </div>
@@ -64,15 +58,14 @@ import FireKSProfilePicture from "$assets/fireks_picture.png";
     </div>
 
     <div class="identity-portrait-copy">
-      <p class="identity-portrait-kicker">One creator, one studio</p>
-      <h4>thefireks leads Halfwaypixel</h4>
+      <p class="identity-portrait-kicker">mr. i-do-everything</p>
+      <h4>halfwaypixel studio blog!</h4>
       <p>
-        So the short version for the base page is simple: hi, I am thefireks, and
-        Halfwaypixel is the studio identity behind the games, art drops, and odd
-        experiments you see here.
+        On this website, i, fireKS, post everything we do at halfwaypixel studio: all the games,
+        demos, art, and other stuff! Also, don't forget to join our discord or follow other socials :D
       </p>
       <div class="identity-contact">
-        <p class="identity-contact-title">Contact with thefireks</p>
+        <p class="identity-contact-title">Contact with the fireKS</p>
         <div class="identity-contact-links">
           <a
             href="https://t.me/thefireKS"
@@ -93,72 +86,3 @@ import FireKSProfilePicture from "$assets/fireks_picture.png";
     </div>
   </aside>
 </div>
-
-<script>
-  const identityStates = [
-    {
-      max: 25,
-      label: "Mostly the person",
-      description:
-        "This side keeps the intro very personal: thefireks is the artist, developer, and voice behind the site.",
-    },
-    {
-      max: 70,
-      label: "Person first, studio second",
-      description:
-        "This is the sweet spot: you meet thefireks first, while Halfwaypixel works as the studio wrapper around the projects.",
-    },
-    {
-      max: 100,
-      label: "Studio-forward framing",
-      description:
-        "Push further right and the studio identity takes more space, which makes sense once the work becomes a published release or collaboration.",
-    },
-  ];
-
-  const initializeIdentityStages = () => {
-    const stages = document.querySelectorAll("[data-identity-stage]");
-
-    stages.forEach((stage) => {
-      if (!(stage instanceof HTMLElement) || stage.dataset.ready === "true") {
-        return;
-      }
-
-      const slider = stage.querySelector("[data-identity-slider]");
-      const label = stage.querySelector("[data-identity-label]");
-      const description = stage.querySelector("[data-identity-description]");
-      const thumb = stage.querySelector("[data-identity-thumb]");
-
-      if (
-        !(slider instanceof HTMLInputElement) ||
-        !(label instanceof HTMLElement) ||
-        !(description instanceof HTMLElement) ||
-        !(thumb instanceof HTMLElement)
-      ) {
-        return;
-      }
-
-      const updateStage = () => {
-        const value = Number(slider.value);
-        const activeState =
-          identityStates.find((state) => value <= state.max) ?? identityStates.at(-1);
-
-        if (!activeState) {
-          return;
-        }
-
-        stage.style.setProperty("--identity-focus", `${value}%`);
-        label.textContent = activeState.label;
-        description.textContent = activeState.description;
-        thumb.style.left = `${value}%`;
-      };
-
-      stage.dataset.ready = "true";
-      slider.addEventListener("input", updateStage);
-      updateStage();
-    });
-  };
-
-  initializeIdentityStages();
-  document.addEventListener("astro:page-load", initializeIdentityStages);
-</script>
