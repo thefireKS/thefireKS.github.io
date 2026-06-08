@@ -4,7 +4,6 @@ import { z } from "zod";
 
 const CACHE_PATH = path.resolve("./src/data/games.json");
 const ITCH_IO_API_KEY = process.env.ITCH_IO_API_KEY;
-const SHOULD_REFRESH = process.env.ITCH_IO_REFRESH === "true";
 
 const GameSchema = z.object({
   id: z.number(),
@@ -28,6 +27,17 @@ const GamesSchema = z.object({
 
 export type Game = z.infer<typeof GameSchema>;
 export type Games = z.infer<typeof GamesSchema>;
+
+export function getGamePublishedDate(game: Game): Date | null {
+  if (!game.published_at) {
+    return null;
+  }
+
+  const publishedAt = game.published_at.replace(" ", "T");
+  const date = new Date(`${publishedAt}Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 function readCachedGames(): Games | null {
   if (!fs.existsSync(CACHE_PATH)) {
@@ -66,7 +76,7 @@ async function fetchGamesFromApi(): Promise<Games> {
 export async function getAllGames(): Promise<Games | null> {
   const cached = readCachedGames();
 
-  if (cached && !SHOULD_REFRESH) {
+  if (cached) {
     return cached;
   }
 

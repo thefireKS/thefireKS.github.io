@@ -1,24 +1,95 @@
 ---
-import { getAllGames } from "$api/games";
+import { getAllProjects } from "$api/projects";
 import ContentContainer from "$components/content-container.astro";
-import GameCard from "$components/game-card.astro";
 import BaseLayout from "$components/layouts/base-layout.astro";
-import Section from "$components/section.astro";
+import ProjectCard from "$components/project-card.astro";
 
-const result = await getAllGames();
+const projects = await getAllProjects();
 ---
 
 <BaseLayout siteMainTitle="Games" theme="games">
-  <ContentContainer heading="Published games">
+  <ContentContainer heading="Published projects">
     <p>
-      I posted <strong>{result?.games.length}</strong> games on my itch.io page, but actually there's more!
-      If you want to know more - contact me!
+      There are <strong>{projects.length}</strong> playable projects here so far.
+      Some come from itch.io, and this timeline can grow with local builds, collaborations,
+      and other releases.
     </p>
   </ContentContainer>
 
-  <div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {result?.games.map((game) => <GameCard game={game} />)}
-    </div>
-  </div>
+  <ol class="project-timeline" aria-label="Published projects timeline">
+    {
+      projects.map((project) => {
+        const timelineAccent =
+          project.card.accent ?? "var(--brand-color-secondary)";
+
+        return (
+          <li
+            class="project-timeline-item"
+            style={`--project-timeline-accent: ${timelineAccent}`}
+          >
+            <div class="project-timeline-marker" aria-hidden="true" />
+            <ProjectCard project={project} />
+          </li>
+        );
+      })
+    }
+  </ol>
 </BaseLayout>
+
+<style>
+  .project-timeline {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0 0 0 1.5rem;
+    list-style: none;
+  }
+
+  .project-timeline::before {
+    content: "";
+    position: absolute;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.35rem;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      var(--brand-color-secondary),
+      var(--brand-color)
+    );
+  }
+
+  .project-timeline-item {
+    position: relative;
+  }
+
+  .project-timeline-marker {
+    position: absolute;
+    top: 1.35rem;
+    left: -1.45rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 2px solid var(--surface-color);
+    border-radius: 999px;
+    background: var(--project-timeline-accent);
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--project-timeline-accent) 35%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .project-timeline {
+      gap: 1.25rem;
+      padding-left: 2rem;
+    }
+
+    .project-timeline::before {
+      left: 0.5rem;
+    }
+
+    .project-timeline-marker {
+      left: -1.9rem;
+    }
+  }
+</style>
