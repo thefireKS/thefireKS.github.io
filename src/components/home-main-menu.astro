@@ -1,0 +1,350 @@
+---
+/*
+ * The main menu of the title screen.
+ *
+ * Every entry has to carry real work, otherwise this is a pretty menu that
+ * still says nothing: each one shows what is actually inside the section —
+ * live counts, the newest thing in it, and thumbnails of real covers, real
+ * emotes and real comic pages.
+ *
+ * Thumbnails come in three kinds because they cannot all be handled the same
+ * way. Animated GIFs have to be served raw — Astro's image pipeline re-encodes
+ * them into a single frozen frame. Remote itch.io covers are already served at
+ * 315x250 and the pipeline would pass them through untouched. Everything else
+ * is a local still, and those must go through <Image>: the comic cover alone is
+ * a 22 MB PNG, which no front page should be shipping to draw a 72px thumb.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { ComicWithChapters } from "$api/comics";
+import type { Project } from "$api/projects";
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  projects: Project[];
+  arts: CollectionEntry<"arts">[];
+  comics: ComicWithChapters[];
+}
+
+type Thumb =
+  | { kind: "remote"; src: string; width: number; height: number }
+  | { kind: "animated"; image: ImageMetadata }
+  | { kind: "still"; image: ImageMetadata };
+
+/* Thumbnails render at 4.5rem tall; ask for twice that so they stay crisp. */
+const THUMB_HEIGHT = 144;
+
+const thumbWidth = (image: ImageMetadata): number =>
+  Math.round((THUMB_HEIGHT * image.width) / image.height);
+
+const localThumb = (image: ImageMetadata): Thumb =>
+  image.format === "gif"
+    ? { kind: "animated", image }
+    : { kind: "still", image };
+
+interface MenuEntry {
+  key: string;
+  label: string;
+  href: string;
+  icon: string;
+  accent: string;
+  accentSecondary: string;
+  count: string;
+  detail: string;
+  thumbs: Thumb[];
+}
+
+const { projects, arts, comics } = Astro.props;
+
+const artworkCount = arts.reduce((sum, art) => sum + art.data.images.length, 0);
+const chapterCount = comics.reduce(
+  (sum, entry) => sum + entry.chapters.length,
+  0,
+);
+
+const latestGame = projects[0];
+const latestComic = comics[0];
+const latestChapter = latestComic?.latestChapter;
+
+/* itch.io serves its covers at a fixed 315x250 crop. */
+const gameThumbs: Thumb[] = projects
+  .filter((project) => project.coverUrl)
+  .slice(0, 4)
+  .map((project) => ({
+    kind: "remote",
+    src: project.coverUrl as string,
+    width: 315,
+    height: 250,
+  }));
+
+const artThumbs: Thumb[] = arts
+  .flatMap((art) => art.data.images)
+  .slice(0, 4)
+  .map((artwork) => localThumb(artwork.image));
+
+/* The cover, then the first pages of the newest chapter to flip through. */
+const comicThumbs: Thumb[] = [
+  ...comics.slice(0, 1).map((entry) => localThumb(entry.comic.data.cover)),
+  ...(latestChapter?.data.pages ?? [])
+    .slice(0, 3)
+    .map((page) => localThumb(page.image)),
+];
+
+const entries: MenuEntry[] = [
+  {
+    key: "games",
+    label: "Games",
+    href: "/games",
+    icon: "pixelarticons:gamepad",
+    accent: "#0073d1",
+    accentSecondary: "#22eeda",
+    count: `${projects.length} released`,
+    detail: latestGame ? `newest — ${latestGame.title}` : "nothing shipped yet",
+    thumbs: gameThumbs,
+  },
+  {
+    key: "art",
+    label: "Art",
+    href: "/art",
+    icon: "pixelarticons:image-gallery",
+    accent: "#ff8400",
+    accentSecondary: "#fddc9f",
+    count: `${artworkCount} artworks`,
+    detail: arts.map((art) => art.data.title).join(" · "),
+    thumbs: artThumbs,
+  },
+  {
+    key: "comics",
+    label: "Comics",
+    href: "/comics",
+    icon: "pixelarticons:book",
+    accent: "#ff5b6e",
+    accentSecondary: "#ffd166",
+    count: `${chapterCount} chapters`,
+    detail:
+      latestChapter && latestComic
+        ? `${latestComic.comic.data.title} — ch. ${latestChapter.data.chapterNumber}, ${latestChapter.data.title}`
+        : "no chapters published yet",
+    thumbs: comicThumbs,
+  },
+];
+---
+
+<nav class="menu" aria-label="Main menu">
+  <p class="menu-label">select</p>
+
+  <ul class="menu-list">
+    {
+      entries.map((entry) => (
+        <li
+          class="menu-item"
+          style={`--menu-accent: ${entry.accent}; --menu-accent-secondary: ${entry.accentSecondary};`}
+        >
+          <a href={entry.href} class="menu-link">
+            <span class="menu-cursor" aria-hidden="true">
+              ▶
+            </span>
+
+            <span class="menu-head">
+              <Icon name={entry.icon} class="menu-icon" />
+              <span class="menu-name">{entry.label}</span>
+              <span class="menu-count">{entry.count}</span>
+            </span>
+
+            <span class="menu-detail">{entry.detail}</span>
+
+            {entry.thumbs.length > 0 ? (
+              <span class="menu-strip" aria-hidden="true">
+                {entry.thumbs.map((thumb) =>
+                  thumb.kind === "remote" ? (
+                    <img
+                      src={thumb.src}
+                      alt=""
+                      width={thumb.width}
+                      height={thumb.height}
+                      class="menu-thumb"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : thumb.kind === "animated" ? (
+                    <img
+                      src={thumb.image.src}
+                      alt=""
+                      width={thumb.image.width}
+                      height={thumb.image.height}
+                      class="menu-thumb"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <Image
+                      src={thumb.image}
+                      alt=""
+                      width={thumbWidth(thumb.image)}
+                      height={THUMB_HEIGHT}
+                      class="menu-thumb"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ),
+                )}
+              </span>
+            ) : null}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .menu-label {
+    margin: 0 0 0.7rem;
+    color: #ffffff5c;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+
+  .menu-list {
+    display: grid;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .menu-link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.9rem;
+    row-gap: 0.5rem;
+    padding: 1rem 1.1rem;
+    border: 2px solid color-mix(in srgb, var(--menu-accent) 45%, transparent);
+    border-radius: 0.15rem;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--menu-accent) 22%, transparent),
+        transparent 62%
+      ),
+      #100c15;
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .menu-link:hover,
+  .menu-link:focus-visible {
+    transform: translateX(0.3rem);
+    border-color: var(--menu-accent);
+    outline: none;
+  }
+
+  .menu-link:focus-visible {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--menu-accent) 45%, transparent);
+  }
+
+  /* The menu cursor of a machine waiting for you to pick a row. */
+  .menu-cursor {
+    grid-row: 1 / 3;
+    color: var(--menu-accent-secondary);
+    font-size: 0.9rem;
+    line-height: 1;
+    opacity: 0.28;
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  .menu-link:hover .menu-cursor,
+  .menu-link:focus-visible .menu-cursor {
+    opacity: 1;
+    transform: translateX(0.15rem);
+  }
+
+  .menu-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .menu-icon {
+    color: var(--menu-accent-secondary);
+    font-size: 1.1rem;
+  }
+
+  .menu-name {
+    font-family: var(--font-heading);
+    font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem);
+    line-height: 1;
+    text-shadow: 2px 2px 0 #00000059;
+  }
+
+  .menu-count {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--menu-accent) 55%, transparent);
+    border-radius: 0.15rem;
+    color: var(--menu-accent-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .menu-detail {
+    grid-column: 2;
+    color: #ffffffb8;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /*
+   * One height for every thumbnail, width left to the artwork. A 315x250 game
+   * cover, a square emote and a portrait comic page then all keep their own
+   * proportions instead of being cropped into a common box.
+   */
+  .menu-strip {
+    display: flex;
+    grid-column: 2;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  .menu-thumb {
+    height: 4.5rem;
+    width: auto;
+    max-width: 9rem;
+    border: 2px solid #ffffff1f;
+    border-radius: 0.15rem;
+    background: #0a0710;
+    object-fit: cover;
+  }
+
+  @media (max-width: 640px) {
+    .menu-link {
+      column-gap: 0.6rem;
+      padding: 0.85rem 0.8rem;
+    }
+
+    .menu-thumb {
+      height: 3.6rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-link,
+    .menu-cursor {
+      transition: none;
+    }
+  }
+</style>

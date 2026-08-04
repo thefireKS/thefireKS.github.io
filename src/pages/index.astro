@@ -1,11 +1,39 @@
 ---
+/*
+ * The front page is the studio's title screen: a title plate with the banner
+ * loop behind it, then a main menu whose entries carry the actual work. Every
+ * count and preview below is read from the real collections, so the page cannot
+ * drift out of sync with what has actually shipped.
+ */
+import { getCollection } from "astro:content";
+import { getComicsIndex } from "$api/comics";
+import { getAllProjects, sortProjectsByPublishedDateDesc } from "$api/projects";
 import BaseLayout from "$components/layouts/base-layout.astro";
-import Section from "$components/section.astro";
-import HomeIdentityShowcase from "$components/home-identity-showcase.astro";
+import HomeMainMenu from "$components/home-main-menu.astro";
+import HomeTitlePlate from "$components/home-title-plate.astro";
+
+const [projects, comics, arts] = await Promise.all([
+  getAllProjects(),
+  getComicsIndex(),
+  getCollection("arts"),
+]);
+
+/* /games pins a couple of projects to the top; the menu wants them by date. */
+const projectsByDate = sortProjectsByPublishedDateDesc(projects);
+
+const artworkCount = arts.reduce((sum, art) => sum + art.data.images.length, 0);
+const chapterCount = comics.reduce(
+  (sum, entry) => sum + entry.chapters.length,
+  0,
+);
 ---
 
 <BaseLayout siteMainTitle="Base" theme="main">
-  <Section heading="Welcome!" icon="pixelarticons:heart">
-    <HomeIdentityShowcase />
-  </Section>
+  <HomeTitlePlate
+    gameCount={projects.length}
+    artworkCount={artworkCount}
+    chapterCount={chapterCount}
+  />
+
+  <HomeMainMenu projects={projectsByDate} arts={arts} comics={comics} />
 </BaseLayout>

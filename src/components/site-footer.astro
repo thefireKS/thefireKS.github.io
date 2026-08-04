@@ -1,0 +1,232 @@
+---
+/*
+ * The bottom stroke of the site's L.
+ *
+ * It is a child of .site-shell rather than of <main>, so it spans the sidebar
+ * column too: the nav runs down the left, this runs across the bottom, and the
+ * content sits in the corner between them.
+ *
+ * The names live in src/data/credits.ts — add collaborators there, not here.
+ *
+ * Colours come from the theme variables so the footer follows whichever
+ * section it sits under. --brand-color-secondary is deliberately not used: it
+ * is declared twice for the main theme and resolves to near black.
+ */
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import FireKSProfilePicture from "$assets/fireks_picture.png";
+import { siteContacts, siteCredits } from "../data/credits";
+
+const credits = siteCredits.filter((credit) => credit.names.length > 0);
+---
+
+<footer class="site-footer" aria-label="Credits">
+  <div class="site-footer-top">
+    <div class="site-footer-about">
+      <span class="site-footer-portrait">
+        <Image
+          src={FireKSProfilePicture}
+          alt="thefireks"
+          width={128}
+          height={128}
+          class="site-footer-portrait-image"
+        />
+      </span>
+
+      <div class="site-footer-intro">
+        <p class="site-footer-label">credits</p>
+        <p class="site-footer-line">
+          Everything here is made at halfwaypixel — sometimes alone, sometimes
+          with people who are much better at drawing.
+        </p>
+      </div>
+    </div>
+
+    <dl class="site-footer-roles">
+      {
+        credits.map((credit) => (
+          <div class="site-footer-row">
+            <dt class="site-footer-role">{credit.role}</dt>
+            <dd class="site-footer-names">{credit.names.join(" · ")}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  <div class="site-footer-contacts">
+    {
+      siteContacts.map((contact) => (
+        <a
+          href={contact.href}
+          class="site-footer-contact"
+          target={contact.href.startsWith("mailto:") ? undefined : "_blank"}
+          rel={
+            contact.href.startsWith("mailto:")
+              ? undefined
+              : "noopener noreferrer"
+          }
+        >
+          <Icon name={contact.icon} class="site-footer-contact-icon" />
+          <span>{contact.label}</span>
+        </a>
+      ))
+    }
+  </div>
+</footer>
+
+<style>
+  /*
+   * Span every column of .site-shell, sidebar included — that is the L.
+   *
+   * Being a child of the shell rather than of <main>, this sits directly on the
+   * page's brand gradient, so the surface colour has to be opaque or the red
+   * bleeds through.
+   */
+  .site-footer {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.1rem 1rem 1.25rem;
+    border-top: 2px solid var(--surface-hover);
+    background: var(--surface-color);
+  }
+
+  .site-footer-top {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .site-footer-about {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .site-footer-portrait {
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    border: 2px solid color-mix(in srgb, var(--brand-color) 60%, transparent);
+    border-radius: 0.15rem;
+    overflow: hidden;
+  }
+
+  .site-footer-portrait-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .site-footer-intro {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .site-footer-label {
+    margin: 0;
+    color: #ffffff5c;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+
+  .site-footer-line {
+    max-width: 52ch;
+    margin: 0;
+    color: #f0e2dd;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .site-footer-roles {
+    display: grid;
+    align-content: center;
+    gap: 0.35rem;
+    margin: 0;
+  }
+
+  .site-footer-row {
+    display: grid;
+    grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    gap: 0.15rem 1rem;
+    align-items: baseline;
+  }
+
+  .site-footer-role {
+    color: #ffffff73;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .site-footer-names {
+    margin: 0;
+    color: #ffe6dc;
+    font-family: var(--font-heading);
+    font-size: 0.86rem;
+  }
+
+  .site-footer-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #ffffff1a;
+  }
+
+  .site-footer-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.65rem;
+    border: 1px solid #ffffff2b;
+    border-radius: 0.15rem;
+    background: #00000038;
+    color: #fff3ec;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .site-footer-contact:hover,
+  .site-footer-contact:focus-visible {
+    transform: translateY(-1px);
+    border-color: var(--brand-color);
+    outline: none;
+  }
+
+  .site-footer-contact:focus-visible {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--brand-color) 45%, transparent);
+  }
+
+  .site-footer-contact-icon {
+    color: var(--brand-color);
+    font-size: 0.95rem;
+  }
+
+  /*
+   * Wide enough for the blurb and the roles to sit side by side, which is what
+   * keeps the bottom stroke of the L thin.
+   */
+  @media (min-width: 820px) {
+    .site-footer {
+      padding-inline: 1.5rem;
+    }
+
+    .site-footer-top {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: center;
+    }
+  }
+</style>

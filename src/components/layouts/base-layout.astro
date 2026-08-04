@@ -1,6 +1,7 @@
 ---
 import "$styles/main.css";
 import NavigationBar from "$components/navigation-bar.astro";
+import SiteFooter from "$components/site-footer.astro";
 import { siteDetails } from "site.config";
 
 interface Props {
@@ -45,6 +46,7 @@ const { logoTitle = siteDetails.siteTitle, siteMainTitle, theme } = Astro.props;
         <slot />
       </div>
     </main>
+    <SiteFooter />
   </body>
 </html>
 

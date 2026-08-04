@@ -1,7 +1,6 @@
 ---
 import type { ComponentProps } from "astro/types";
 import Logo from "$components/logo.astro";
-import Footer from "$components/footer.astro";
 import { Icon } from "astro-icon/components";
 type Props = ComponentProps<typeof Logo>;
 
@@ -38,74 +37,92 @@ const isCurrentPage = (url: string) => {
 };
 ---
 
+{
+  /*
+  On desktop the nav is a plain full-height grid item and the panel inside it
+  is what sticks. Making the nav itself sticky does not work here: Chrome
+  clamps a sticky box to the content box of <body>, not to its own grid area,
+  so a viewport-tall sidebar slides straight down over the footer that spans
+  the row beneath it. A static nav can only ever be as tall as its own row, and
+  the inner panel is then clamped by the nav.
+
+  On mobile the nav is the sticky top bar itself, which has no row below it to
+  collide with.
+*/
+}
 <nav
-  class="bg-surface text-text lg:h-screen z-50 sticky top-0 p-4 flex flex-col justify-between lg:border-x-2 border-b-2 lg:border-b-0 border-surface-hover gap-4 lg:gap-0"
+  class="bg-surface text-text lg:h-full z-50 sticky top-0 lg:static lg:border-x-2 border-b-2 lg:border-b-0 border-surface-hover"
 >
-  <section class="flex flex-col gap-4">
-    <!-- Logo -->
-    <section class="flex justify-between items-center text-2xl">
-      <Logo title={title} />
-      <button class="menu-button block lg:hidden">
-        <span class="sr-only">Open/Close Menu</span>
+  <div class="p-4 flex flex-col gap-4 lg:sticky lg:top-0 lg:max-h-screen">
+    <section class="flex flex-col gap-4">
+      <!-- Logo -->
+      <section class="flex justify-between items-center text-2xl">
+        <Logo title={title} />
+        <button class="menu-button block lg:hidden">
+          <span class="sr-only">Open/Close Menu</span>
 
-        <Icon name="pixelarticons:menu" class="open-menu" />
-        <Icon name="pixelarticons:close-box" class="close-menu hidden" />
-      </button>
+          <Icon name="pixelarticons:menu" class="open-menu" />
+          <Icon name="pixelarticons:close-box" class="close-menu hidden" />
+        </button>
+      </section>
+
+      <!-- Navigation Links -->
+      <ul class="space-y-4 hidden lg:block">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.path}
+                aria-current={isCurrentPage(link.path) ? "page" : "false"}
+                class="flex gap-2 items-center p-2 hover:font-bold group aria-[current='page']:font-bold"
+              >
+                <Icon
+                  name={link.icon}
+                  class="text-xl group-aria-[current='page']:text-brand"
+                />
+                <span class="font-heading text-sm">{link.name}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </section>
-
-    <!-- Navigation Links -->
-    <ul class="space-y-4 hidden lg:block">
-      {
-        links.map((link) => (
-          <li>
-            <a
-              href={link.path}
-              aria-current={isCurrentPage(link.path) ? "page" : "false"}
-              class="flex gap-2 items-center p-2 hover:font-bold group aria-[current='page']:font-bold"
-            >
-              <Icon
-                name={link.icon}
-                class="text-xl group-aria-[current='page']:text-brand"
-              />
-              <span class="font-heading text-sm">{link.name}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
-
-  <!-- Footer -->
-  <Footer />
+  </div>
 </nav>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
-    let isOpen = false;
+  /*
+   * This used to run only inside an `astro:page-load` listener, which never
+   * fires: that event belongs to the ClientRouter, and this site does not use
+   * one. The burger button therefore had no click handler at all and the menu
+   * could not be opened on a phone. It is called directly now, and still
+   * registered on `astro:page-load` so it keeps working if a ClientRouter is
+   * added later — the data attribute is what stops it binding twice.
+   */
+  function setupMenu() {
     const navigationContainer = document.querySelector("nav");
     const menuButton = navigationContainer?.querySelector("button");
     const navigationList = navigationContainer?.querySelector("ul");
     const openMenuIcon = menuButton?.querySelector(".open-menu") as HTMLElement;
-    const closeMenuicon = menuButton?.querySelector(".close-menu");
+    const closeMenuIcon = menuButton?.querySelector(".close-menu");
 
-    function toggleMenu(e: MouseEvent) {
+    if (!menuButton || !navigationList || !openMenuIcon || !closeMenuIcon) {
+      return;
+    }
+    if (menuButton.dataset.menuBound === "true") return;
+    menuButton.dataset.menuBound = "true";
+
+    let isOpen = false;
+
+    menuButton.addEventListener("click", () => {
       isOpen = !isOpen;
 
-      if (!navigationList) return;
-      if (!openMenuIcon) return;
-      if (!closeMenuicon) return;
+      navigationList.classList.toggle("hidden", !isOpen);
+      openMenuIcon.classList.toggle("hidden", isOpen);
+      closeMenuIcon.classList.toggle("hidden", !isOpen);
+    });
+  }
 
-      if (isOpen) {
-        navigationList.classList.remove("hidden");
-        openMenuIcon.classList.add("hidden");
-        closeMenuicon.classList.remove("hidden");
-      } else {
-        navigationList.classList.add("hidden");
-        openMenuIcon.classList.remove("hidden");
-        closeMenuicon.classList.add("hidden");
-      }
-    }
-
-    menuButton?.addEventListener("click", toggleMenu);
-  });
+  setupMenu();
+  document.addEventListener("astro:page-load", setupMenu);
 </script>
