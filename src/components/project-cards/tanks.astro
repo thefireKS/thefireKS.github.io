@@ -1,0 +1,364 @@
+---
+/*
+ * tanks! — the card is the carpet.
+ *
+ * The game is tanks fighting on a childhood rug, so the card is woven:
+ * knotted fringe, a diamond border band, a calmer field to hold the text,
+ * and the cover art lying on it like a photo print. The game's own tank
+ * sprites patrol the border on hover.
+ */
+import type { Project, ProjectPlatform } from "$api/projects";
+import { formatProjectDate } from "$api/projects";
+import tank1 from "$assets/extras/Tank1.png";
+import tank2 from "$assets/extras/Tank2.png";
+import tank3 from "$assets/extras/tank3.png";
+import { Image } from "astro:assets";
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+
+const platformLabels: Record<ProjectPlatform, string> = {
+  android: "Android",
+  browser: "Browser",
+  linux: "Linux",
+  macos: "macOS",
+  windows: "Windows",
+};
+
+// Two tanks lap one way, one the other, so they meet head on.
+const patrol = [
+  { sprite: tank1, className: "tnk-runner-a" },
+  { sprite: tank2, className: "tnk-runner-b" },
+  { sprite: tank3, className: "tnk-runner-c" },
+];
+---
+
+<a
+  href={project.url}
+  class="project-card tnk-card"
+  data-project-key={project.key}
+>
+  <span class="tnk-fringe tnk-fringe-top" aria-hidden="true"></span>
+
+  <div class="tnk-frame">
+    <div class="tnk-track" aria-hidden="true">
+      {
+        patrol.map((tank) => (
+          <span class={`tnk-runner ${tank.className}`}>
+            <img class="tnk-tank" src={tank.sprite.src} alt="" />
+          </span>
+        ))
+      }
+    </div>
+
+    <div class="tnk-field">
+      <figure class="tnk-photo">
+        {
+          project.coverUrl ? (
+            <Image
+              src={project.coverUrl}
+              alt={project.title}
+              width={315}
+              height={250}
+              class="tnk-photo-img"
+            />
+          ) : (
+            <div class="tnk-photo-img tnk-photo-empty" />
+          )
+        }
+      </figure>
+
+      <div class="tnk-copy">
+        <p class="tnk-eyebrow">{project.sourceLabel}</p>
+        <h4 class="tnk-title">{project.title}</h4>
+
+        {
+          project.description ? (
+            <p class="tnk-text">{project.description}</p>
+          ) : null
+        }
+
+        <div class="tnk-meta">
+          {
+            project.publishedAt ? (
+              <time
+                datetime={project.publishedAt.toISOString()}
+                class="tnk-tag"
+              >
+                {formatProjectDate(project.publishedAt)}
+              </time>
+            ) : null
+          }
+          {
+            project.platforms.map((platform) => (
+              <span class="tnk-tag">{platformLabels[platform]}</span>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <span class="tnk-fringe tnk-fringe-bottom" aria-hidden="true"></span>
+</a>
+
+<style>
+  .tnk-card {
+    border-radius: 0.15rem;
+    padding-block: 11px;
+    background: transparent;
+    filter: drop-shadow(0 12px 22px #0000004d);
+    transition: transform 220ms ease;
+  }
+
+  .tnk-card:hover {
+    transform: translateY(-0.25rem);
+  }
+
+  /* Knotted fringe hanging off the woven edges. */
+  .tnk-fringe {
+    position: absolute;
+    right: 0.75rem;
+    left: 0.75rem;
+    height: 11px;
+    background: repeating-linear-gradient(
+      90deg,
+      #ece0bf 0 3px,
+      transparent 3px 8px
+    );
+  }
+
+  .tnk-fringe-top {
+    top: 0;
+    mask-image: linear-gradient(to top, #000 55%, transparent);
+  }
+
+  .tnk-fringe-bottom {
+    bottom: 0;
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+
+  /*
+   * The ornamental border band. The diamond chain is painted across the whole
+   * frame, and the field on top covers everything but the padding ring — the
+   * way a real rug carries its pattern only in the border.
+   */
+  .tnk-frame {
+    position: relative;
+    /* wide enough for a 16px tank to sit inside the band */
+    padding: 1.4rem;
+    background:
+      repeating-conic-gradient(
+          from 45deg at 50% 50%,
+          #d9a245 0 25%,
+          transparent 0 50%
+        )
+        0 0 / 18px 18px,
+      repeating-conic-gradient(
+          from 45deg at 50% 50%,
+          #4b8f87 0 25%,
+          transparent 0 50%
+        )
+        9px 9px / 18px 18px,
+      linear-gradient(180deg, #7c2f2c, #6a2523);
+    box-shadow:
+      inset 0 0 0 2px #3d1414,
+      inset 0 0 0 3px #d9a24559;
+  }
+
+  /* The calm middle of the rug, where the text can actually be read. */
+  .tnk-field {
+    display: grid;
+    gap: 1.25rem;
+    border: 2px solid #d9a2457a;
+    padding: 1.2rem;
+    background:
+      radial-gradient(ellipse 62% 76% at 50% 50%, #8e3a34, transparent 74%),
+      repeating-linear-gradient(45deg, #ffffff08 0 2px, transparent 2px 13px),
+      repeating-linear-gradient(-45deg, #00000014 0 2px, transparent 2px 13px),
+      #641f1e;
+    box-shadow:
+      inset 0 0 0 4px #00000033,
+      inset 0 0 34px #00000059;
+  }
+
+  .tnk-photo {
+    margin: 0;
+    border: 6px solid #f7f1e2;
+    border-bottom-width: 1.35rem;
+    background: #f7f1e2;
+    box-shadow: 0 14px 24px #00000066;
+    transform: rotate(-2.2deg);
+    transition: transform 220ms ease;
+  }
+
+  .tnk-card:hover .tnk-photo {
+    transform: rotate(-3.4deg) translateY(-0.15rem);
+  }
+
+  .tnk-photo-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 315 / 250;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+
+  .tnk-photo-empty {
+    background: #3f6f4a;
+  }
+
+  .tnk-copy {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+  }
+
+  .tnk-eyebrow {
+    margin: 0;
+    color: #e8be74;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+  }
+
+  .tnk-title {
+    margin: 0;
+    color: #fbf0d6;
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 1.1rem + 2.2vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-shadow:
+      3px 3px 0 #40100f,
+      0 0 18px #00000073;
+  }
+
+  .tnk-text {
+    margin: 0.15rem 0 0;
+    max-width: 46ch;
+    color: #f3ddc4;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    text-shadow: 0 1px 2px #00000073;
+  }
+
+  .tnk-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+  }
+
+  /* Little woven labels stitched to the rug. */
+  .tnk-tag {
+    border: 1px solid #d9a24566;
+    border-radius: 0.15rem;
+    padding: 0.32rem 0.5rem;
+    background: #4d1817;
+    color: #eccf9b;
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  /*
+   * The patrol runs on the centre line of the border band. offset-path does
+   * the work that hand-written corner keyframes did badly: it moves at one
+   * speed regardless of how much longer the card is than it is tall, and
+   * offset-rotate turns the sprite into the corner for us.
+   *
+   * It is decorative, so browsers without motion paths simply get a plain rug.
+   */
+  .tnk-track {
+    display: none;
+  }
+
+  @supports (offset-path: border-box) {
+    .tnk-track {
+      display: block;
+      position: absolute;
+      inset: 0.7rem;
+      z-index: 3;
+      pointer-events: none;
+    }
+  }
+
+  .tnk-runner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    offset-path: border-box;
+    offset-distance: 0%;
+    /* sprites are drawn nose up; the path's own heading is +X */
+    offset-rotate: auto 90deg;
+    opacity: 0;
+    animation: tnk-lap 26s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 240ms ease;
+  }
+
+  /* Negative delays spread the three of them around the lap: 0%, 33%, 67%. */
+  .tnk-runner-b {
+    animation-delay: -8.67s;
+  }
+
+  /* Coming the other way, so its nose has to face the other way too. */
+  .tnk-runner-c {
+    offset-rotate: auto -90deg;
+    animation-delay: -8.67s;
+    animation-direction: reverse;
+  }
+
+  .tnk-tank {
+    display: block;
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 1px 0 #0000008c);
+  }
+
+  @keyframes tnk-lap {
+    to {
+      offset-distance: 100%;
+    }
+  }
+
+  .tnk-card:hover .tnk-runner,
+  .tnk-card:focus-visible .tnk-runner {
+    opacity: 1;
+    animation-play-state: running;
+  }
+
+  /* No hover to reward on touch, so let them patrol on their own. */
+  @media (hover: none) {
+    .tnk-runner {
+      opacity: 1;
+      animation-play-state: running;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .tnk-field {
+      grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+      gap: 1.6rem;
+      align-items: center;
+      padding: 1.5rem;
+    }
+  }
+
+  /* Tanks parked mid-lap just read as debris on the rug. */
+  @media (prefers-reduced-motion: reduce) {
+    .tnk-track {
+      display: none;
+    }
+  }
+</style>

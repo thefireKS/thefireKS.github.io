@@ -1,6 +1,7 @@
 @config "../../tailwind.config.mjs";
 @import "tailwindcss";
 @import "./themes.css";
+@import "./project-cards.css";
 
 /* Register your custom font family and tell the browser where to find it. */
 @font-face {
@@ -16,6 +17,16 @@
   src: url("/fonts/PixeloidSans-Bold.woff") format("woff");
   font-weight: bold;
   font-style: oblique;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PixeloidMono";
+  src:
+    url("/fonts/PixeloidMono.woff2") format("woff2"),
+    url("/fonts/PixeloidMono.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
   font-display: swap;
 }
 

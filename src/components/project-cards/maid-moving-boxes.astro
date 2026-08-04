@@ -1,0 +1,444 @@
+---
+/*
+ * MAID MOVING BOXES — the card is the freight.
+ *
+ * Corrugated kraft with a stencilled title, the cover taped down like a
+ * photo, and the project metadata typed onto a shipping manifest. The
+ * quota the game is about becomes the download count stamp.
+ */
+import type { Project, ProjectPlatform } from "$api/projects";
+import { formatProjectDate } from "$api/projects";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+
+const platformCodes: Record<ProjectPlatform, string> = {
+  android: "ANDROID",
+  browser: "WEB",
+  linux: "LINUX",
+  macos: "MACOS",
+  windows: "WIN",
+};
+
+const handling = project.platforms.map((p) => platformCodes[p]).join(" / ");
+const quota = project.downloads ?? 0;
+
+// ORIGIN is the studio, which is the itch.io subdomain wherever that link sits.
+const itchUrl =
+  project.links.find((link) => link.url.includes("itch.io"))?.url ??
+  project.url;
+const origin = itchUrl.replace(/^https?:\/\//, "").split(".")[0];
+
+const manifest = [
+  { label: "ORIGIN", value: origin.toUpperCase() },
+  {
+    label: "DISPATCH",
+    value: project.publishedAt ? formatProjectDate(project.publishedAt) : "—",
+  },
+  { label: "HANDLING", value: handling || "—" },
+];
+---
+
+<article class="project-card mmb-card" data-project-key={project.key}>
+  <div class="mmb-tape" aria-hidden="true">
+    <span class="mmb-tape-text"
+      >{project.primaryLabel} · fragile · this way up</span
+    >
+  </div>
+
+  <div class="mmb-inner">
+    <div class="mmb-freight">
+      <figure class="mmb-photo">
+        {
+          project.coverUrl ? (
+            <Image
+              src={project.coverUrl}
+              alt={project.title}
+              width={315}
+              height={250}
+              class="mmb-photo-img"
+            />
+          ) : (
+            <div class="mmb-photo-img mmb-photo-empty" />
+          )
+        }
+        <span class="mmb-corner mmb-corner-tl" aria-hidden="true"></span>
+        <span class="mmb-corner mmb-corner-tr" aria-hidden="true"></span>
+        <span class="mmb-corner mmb-corner-bl" aria-hidden="true"></span>
+        <span class="mmb-corner mmb-corner-br" aria-hidden="true"></span>
+      </figure>
+
+      <p class="mmb-stamp" aria-hidden="true">
+        <span class="mmb-stamp-top">QUOTA</span>
+        <span class="mmb-stamp-num">{quota}</span>
+        <span class="mmb-stamp-bottom">SHIPPED</span>
+      </p>
+
+      {
+        project.links.map((link) => (
+          <a class="mmb-courier" href={link.url}>
+            <span class="mmb-courier-route">Also ships via</span>
+            <span class="mmb-courier-carrier">
+              {link.icon ? <Icon name={link.icon} /> : null}
+              {link.label}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="mmb-content">
+      <h4 class="mmb-title">
+        <a class="project-card-primary" href={project.url}>{project.title}</a>
+      </h4>
+
+      <div class="mmb-label">
+        <p class="mmb-label-head">Shipping manifest</p>
+
+        <dl class="mmb-rows">
+          {
+            manifest.map((row) => (
+              <div class="mmb-row">
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          project.description ? (
+            <p class="mmb-copy">{project.description}</p>
+          ) : null
+        }
+
+        <div class="mmb-barcode" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .mmb-card {
+    overflow: hidden;
+    border: 1px solid #6d4523;
+    border-radius: 0.35rem;
+    padding: 0 1rem 1.15rem;
+    background:
+      /* corrugation showing through the liner */
+      repeating-linear-gradient(90deg, #00000012 0 1px, transparent 1px 7px),
+      radial-gradient(circle at 16% 18%, #ffffff18, transparent 42%),
+      radial-gradient(circle at 84% 82%, #00000020, transparent 46%),
+      linear-gradient(158deg, #c39058 0%, #ad7841 62%, #96683a 100%);
+    box-shadow:
+      inset 0 0 0 1px #ffffff14,
+      0 10px 26px #00000038;
+    transition: transform 220ms ease;
+  }
+
+  .mmb-card:hover {
+    transform: translateY(-0.3rem);
+  }
+
+  /* Packing tape running across the top, overhanging both edges. */
+  .mmb-tape {
+    position: relative;
+    left: -2rem;
+    width: calc(100% + 4rem);
+    margin-bottom: 1.15rem;
+    border-block: 1px solid #ffffff33;
+    padding: 0.42rem 0;
+    background: linear-gradient(180deg, #f0d49ad9, #dcb571cc 45%, #cfa459d1);
+    box-shadow: 0 2px 6px #00000026;
+    text-align: center;
+    transform: rotate(-0.7deg);
+  }
+
+  .mmb-tape-text {
+    color: #5d3b1b;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .mmb-inner {
+    display: grid;
+    gap: 1.35rem;
+  }
+
+  .mmb-freight {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 1.4rem;
+  }
+
+  /* Cover art taped down like a print, not framed like a thumbnail. */
+  .mmb-photo {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    border: 0.5rem solid #f7f0e0;
+    border-bottom-width: 1.6rem;
+    background: #f7f0e0;
+    box-shadow: 0 12px 22px #00000047;
+    transform: rotate(-1.7deg);
+    transition: transform 220ms ease;
+  }
+
+  .mmb-card:hover .mmb-photo {
+    transform: rotate(-2.8deg) translateY(-0.15rem);
+  }
+
+  .mmb-photo-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 315 / 250;
+    object-fit: cover;
+  }
+
+  .mmb-photo-empty {
+    background: #7d5a34;
+  }
+
+  .mmb-corner {
+    position: absolute;
+    width: 2.4rem;
+    height: 0.85rem;
+    background: linear-gradient(180deg, #f3dcae9e, #d9b87ba1);
+    box-shadow: inset 0 0 0 1px #ffffff40;
+  }
+
+  .mmb-corner-tl {
+    top: -0.3rem;
+    left: -0.9rem;
+    transform: rotate(-45deg);
+  }
+
+  .mmb-corner-tr {
+    top: -0.3rem;
+    right: -0.9rem;
+    transform: rotate(45deg);
+  }
+
+  .mmb-corner-bl {
+    bottom: -0.3rem;
+    left: -0.9rem;
+    transform: rotate(45deg);
+  }
+
+  .mmb-corner-br {
+    bottom: -0.3rem;
+    right: -0.9rem;
+    transform: rotate(-45deg);
+  }
+
+  .mmb-content {
+    display: grid;
+    align-content: start;
+    gap: 0.9rem;
+  }
+
+  /* Stencilled straight onto the box. */
+  .mmb-title {
+    margin: 0;
+    color: #3a2310;
+    font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 1rem + 1.9vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    text-shadow:
+      0 1px 0 #ffffff2e,
+      0 0 6px #3a231026;
+  }
+
+  .mmb-label {
+    display: grid;
+    gap: 0.7rem;
+    border-radius: 0.15rem;
+    padding: 0.9rem 1rem 1rem;
+    background:
+      repeating-linear-gradient(
+        180deg,
+        transparent 0 1.45rem,
+        #00000009 1.45rem 1.5rem
+      ),
+      linear-gradient(180deg, #f7efdb, #ece0c6);
+    box-shadow:
+      inset 0 0 0 1px #00000014,
+      0 6px 14px #00000030;
+    color: #33261a;
+    transform: rotate(0.4deg);
+  }
+
+  .mmb-label-head {
+    margin: 0;
+    border-bottom: 2px solid #33261a2e;
+    padding-bottom: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .mmb-rows {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+  }
+
+  .mmb-row {
+    display: grid;
+    grid-template-columns: 5.4rem 1fr;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+
+  .mmb-row dt {
+    color: #33261a99;
+    letter-spacing: 0.12em;
+  }
+
+  .mmb-row dd {
+    margin: 0;
+    letter-spacing: 0.06em;
+    /* dot leader, like a form printed on a dot-matrix */
+    border-bottom: 1px dotted #33261a3d;
+  }
+
+  .mmb-copy {
+    margin: 0;
+    color: #3d2f21;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.9;
+  }
+
+  .mmb-barcode {
+    width: min(100%, 20rem);
+    height: 2.1rem;
+    background: repeating-linear-gradient(
+      90deg,
+      #2a1f14 0 2px,
+      transparent 2px 4px,
+      #2a1f14 4px 7px,
+      transparent 7px 9px,
+      #2a1f14 9px 10px,
+      transparent 10px 14px
+    );
+  }
+
+  /* Rubber stamp: the quota the game is actually about, inked on the kraft. */
+  .mmb-stamp {
+    display: grid;
+    justify-items: center;
+    gap: 0.05rem;
+    margin: 0 0 0 1.4rem;
+    border: 3px double #a82c25;
+    border-radius: 0.2rem;
+    padding: 0.4rem 0.8rem;
+    color: #a82c25;
+    font-family: var(--font-heading);
+    line-height: 1;
+    opacity: 0.78;
+    transform: rotate(-13deg);
+    transition:
+      transform 220ms ease,
+      opacity 220ms ease;
+    pointer-events: none;
+  }
+
+  .mmb-card:hover .mmb-stamp {
+    opacity: 0.92;
+    transform: rotate(-13deg) scale(1.06);
+  }
+
+  /*
+   * The other storefront, as a carrier sticker slapped on the box. It is a
+   * real second link, so it has to ride above the stretched title link.
+   */
+  .mmb-courier {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    border-radius: 0.15rem;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(180deg, #fbf5e6, #eee2c8);
+    color: #c4392f;
+    font-family: var(--font-mono);
+    line-height: 1;
+    text-decoration: none;
+    box-shadow:
+      inset 0 0 0 1px #00000021,
+      0 5px 12px #0000003d;
+    transform: rotate(1.6deg);
+    transition:
+      transform 200ms ease,
+      filter 200ms ease;
+  }
+
+  .mmb-courier:hover {
+    filter: brightness(1.06);
+    transform: rotate(1.6deg) translateY(-2px);
+  }
+
+  .mmb-courier:focus-visible {
+    outline: 3px solid #c4392f;
+    outline-offset: 3px;
+  }
+
+  .mmb-courier-route {
+    color: #6b5a45;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .mmb-courier-carrier {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .mmb-stamp-top,
+  .mmb-stamp-bottom {
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+  }
+
+  .mmb-stamp-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  @media (min-width: 768px) {
+    .mmb-card {
+      padding-inline: 1.5rem;
+    }
+
+    .mmb-inner {
+      grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+      gap: 1.9rem;
+      align-items: start;
+    }
+
+    .mmb-photo {
+      margin-top: 0.35rem;
+    }
+  }
+</style>

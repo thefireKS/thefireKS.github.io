@@ -1,0 +1,62 @@
+/*
+ * Base contract shared by every project card renderer.
+ *
+ * Each renderer in src/components/project-cards/ owns its own layout and
+ * visuals in a scoped <style> block. This file only holds what every card
+ * must agree on: it is a link, it fills its timeline slot, and it can be
+ * focused and calmed down.
+ */
+
+.project-card {
+  position: relative;
+  display: block;
+  min-height: 100%;
+  border-radius: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.project-card:focus-visible,
+.project-card:has(.project-card-primary:focus-visible) {
+  outline: 3px solid var(--project-card-accent, var(--brand-color-secondary));
+  outline-offset: 4px;
+}
+
+/*
+ * A card that needs a second link (a store page, a mirror) cannot be one big
+ * <a> — nesting links is invalid. Such a card is a plain element instead, and
+ * its title link carries `.project-card-primary` to stretch over the whole
+ * card. Any other link must sit above that overlay with `z-index: 2`.
+ */
+.project-card-primary {
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-card-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.project-card-primary:focus-visible {
+  outline: none;
+}
+
+/*
+ * Cards lean on decorative motion, so give it a single global kill switch.
+ * Renderers that would leave a stray prop mid-animation (a patrolling sprite,
+ * a scrolling artifact) also hide it explicitly in their own styles.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .project-card,
+  .project-card *,
+  .project-card *::before,
+  .project-card *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

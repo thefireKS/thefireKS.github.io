@@ -1,0 +1,507 @@
+---
+/*
+ * Stalopxasine — the card is the cabinet.
+ *
+ * Plastic bezel with screws, a backlit marquee holding the title, the cover
+ * behind CRT glass, and a control panel underneath. The download count
+ * becomes the hi-score; the game's four heroes become nodes on a board trace.
+ */
+import type { Project, ProjectPlatform } from "$api/projects";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+
+const platformLabels: Record<ProjectPlatform, string> = {
+  android: "Android",
+  browser: "Browser",
+  linux: "Linux",
+  macos: "macOS",
+  windows: "Windows",
+};
+
+const platformIcons: Record<ProjectPlatform, string> = {
+  android: "material-symbols:android",
+  browser: "material-symbols:public",
+  linux: "icomoon-free:tux",
+  macos: "ic:baseline-apple",
+  windows: "material-symbols:window-sharp",
+};
+
+const year = project.publishedAt?.getUTCFullYear() ?? "----";
+const hiScore = String(project.downloads ?? 0).padStart(6, "0");
+
+/*
+ * The four heroes are one party running a single story, not four players
+ * picking slots — so they are drawn as nodes wired onto a shared rail.
+ */
+const party = ["#ff5b6e", "#6ee7ff", "#ffd166", "#9bff8f"];
+---
+
+<a
+  href={project.url}
+  class="project-card stx-card"
+  data-project-key={project.key}
+>
+  <span class="stx-screw stx-screw-tl" aria-hidden="true"></span>
+  <span class="stx-screw stx-screw-tr" aria-hidden="true"></span>
+  <span class="stx-screw stx-screw-bl" aria-hidden="true"></span>
+  <span class="stx-screw stx-screw-br" aria-hidden="true"></span>
+
+  <div class="stx-marquee">
+    <h4 class="stx-marquee-title">{project.title}</h4>
+    <p class="stx-marquee-sub">{project.sourceLabel} · {year}</p>
+  </div>
+
+  <div class="stx-screen">
+    {
+      project.coverUrl ? (
+        <Image
+          src={project.coverUrl}
+          alt={project.title}
+          width={315}
+          height={250}
+          class="stx-screen-img"
+        />
+      ) : (
+        <div class="stx-screen-img stx-screen-empty" />
+      )
+    }
+
+    <div class="stx-hud" aria-hidden="true">
+      <span>1UP</span>
+      <span>HI {hiScore}</span>
+      <span>CR 00</span>
+    </div>
+
+    <p class="stx-start" aria-hidden="true">PRESS START</p>
+
+    <div class="stx-scanlines" aria-hidden="true"></div>
+    <div class="stx-roll" aria-hidden="true"></div>
+    <div class="stx-glare" aria-hidden="true"></div>
+  </div>
+
+  <div class="stx-panel">
+    <div class="stx-party" aria-hidden="true">
+      <svg
+        class="stx-trace"
+        width="62"
+        height="24"
+        viewBox="0 0 62 24"
+        fill="none"
+      >
+        <circle cx="5" cy="12" r="3.4" stroke="currentColor" stroke-width="1.6"
+        ></circle>
+        <path
+          d="M9 12 H20 L27 5 H37 L44 12 H62"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="square"></path>
+      </svg>
+
+      <span class="stx-party-rail">
+        {
+          party.map((color) => (
+            <span class="stx-party-node" style={`--stx-node: ${color}`} />
+          ))
+        }
+      </span>
+
+      <span class="stx-trace-tail"></span>
+    </div>
+
+    {project.description ? <p class="stx-copy">{project.description}</p> : null}
+
+    <div class="stx-buttons">
+      {
+        project.platforms.map((platform) => (
+          <span class="stx-button" title={platformLabels[platform]}>
+            <Icon name={platformIcons[platform]} />
+          </span>
+        ))
+      }
+    </div>
+  </div>
+</a>
+
+<style>
+  .stx-card {
+    overflow: hidden;
+    border: 2px solid #08080b;
+    border-radius: 0.9rem;
+    padding: 0.75rem;
+    background: linear-gradient(180deg, #2c2c34 0%, #1a1a20 22%, #14141a 100%);
+    box-shadow:
+      inset 0 1px 0 #ffffff1a,
+      inset 0 -2px 0 #00000080,
+      0 12px 28px #00000052;
+  }
+
+  .stx-screw {
+    position: absolute;
+    z-index: 4;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background:
+      linear-gradient(#00000090, #00000090) 50% 50% / 70% 1px no-repeat,
+      radial-gradient(circle at 35% 30%, #8b8b96, #3b3b44 70%);
+    box-shadow: 0 1px 1px #00000080;
+  }
+
+  .stx-screw-tl {
+    top: 0.42rem;
+    left: 0.42rem;
+  }
+  .stx-screw-tr {
+    top: 0.42rem;
+    right: 0.42rem;
+  }
+  .stx-screw-bl {
+    bottom: 0.42rem;
+    left: 0.42rem;
+  }
+  .stx-screw-br {
+    bottom: 0.42rem;
+    right: 0.42rem;
+  }
+
+  /* Backlit marquee across the top of the cabinet. */
+  .stx-marquee {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    border: 1px solid #000;
+    border-radius: 0.35rem;
+    padding: 0.7rem 1.6rem;
+    background:
+      linear-gradient(180deg, #ffffff0a, transparent 40%),
+      linear-gradient(180deg, #33333d, #1d1d24);
+    box-shadow:
+      inset 0 -14px 22px #6ee7ff14,
+      inset 0 0 0 1px #ffffff0f;
+  }
+
+  .stx-marquee-title {
+    margin: 0;
+    color: #eafcff;
+    font-family: var(--font-heading);
+    font-size: clamp(1.1rem, 0.85rem + 1.5vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 8px #6ee7ff,
+      0 0 22px #6ee7ff80;
+  }
+
+  .stx-marquee-sub {
+    margin: 0;
+    color: #6ee7ffb3;
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  /* CRT glass. */
+  .stx-screen {
+    position: relative;
+    margin-top: 0.75rem;
+    overflow: hidden;
+    /* uneven radii read as tube curvature */
+    border-radius: 1.6rem / 2.6rem;
+    background: #04070a;
+    box-shadow:
+      inset 0 0 3.5rem #000000d9,
+      inset 0 0 0 3px #0a0a0e,
+      0 0 0 3px #26262e;
+    aspect-ratio: 16 / 7;
+  }
+
+  .stx-screen-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    /* the source is pixel art — let it stay pixels when it scales up */
+    image-rendering: pixelated;
+    filter: saturate(1.15) contrast(1.06) brightness(0.92);
+    animation: stx-flicker 5.5s steps(1) infinite;
+  }
+
+  .stx-screen-empty {
+    background: linear-gradient(160deg, #16294a, #0a1220);
+  }
+
+  .stx-card:hover .stx-screen-img {
+    filter: saturate(1.25) contrast(1.1) brightness(1.08);
+  }
+
+  @keyframes stx-flicker {
+    0%,
+    97% {
+      opacity: 1;
+    }
+    98% {
+      opacity: 0.9;
+    }
+    99% {
+      opacity: 1;
+    }
+    99.5% {
+      opacity: 0.94;
+    }
+  }
+
+  .stx-scanlines,
+  .stx-roll,
+  .stx-glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .stx-scanlines {
+    z-index: 2;
+    background: repeating-linear-gradient(
+      180deg,
+      #00000000 0 2px,
+      #00000059 2px 4px
+    );
+  }
+
+  /* The slow vertical sync artifact. */
+  .stx-roll {
+    z-index: 3;
+    height: 28%;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      #6ee7ff12 35%,
+      #ffffff10 50%,
+      #6ee7ff12 65%,
+      transparent
+    );
+    animation: stx-roll 7s linear infinite;
+  }
+
+  @keyframes stx-roll {
+    from {
+      transform: translateY(-120%);
+    }
+    to {
+      transform: translateY(460%);
+    }
+  }
+
+  .stx-glare {
+    z-index: 3;
+    background:
+      radial-gradient(ellipse at 28% -10%, #ffffff26, transparent 52%),
+      radial-gradient(ellipse at 50% 50%, transparent 42%, #000000a6 100%);
+  }
+
+  .stx-hud,
+  .stx-start {
+    position: absolute;
+    z-index: 3;
+    margin: 0;
+    color: #79ffe1;
+    font-family: var(--font-heading);
+    text-shadow: 0 0 7px currentColor;
+  }
+
+  .stx-hud {
+    top: 0.65rem;
+    right: 1.4rem;
+    left: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: clamp(0.55rem, 0.45rem + 0.4vw, 0.72rem);
+    letter-spacing: 0.14em;
+  }
+
+  .stx-start {
+    right: 0;
+    bottom: 0.75rem;
+    left: 0;
+    color: #ff5b6e;
+    font-size: clamp(0.6rem, 0.5rem + 0.5vw, 0.85rem);
+    letter-spacing: 0.28em;
+    text-align: center;
+    animation: stx-blink 1.4s steps(1) infinite;
+  }
+
+  .stx-card:hover .stx-start {
+    animation-duration: 0.55s;
+  }
+
+  @keyframes stx-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Control panel. */
+  .stx-panel {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 0.75rem;
+    border: 1px solid #00000073;
+    border-radius: 0.4rem;
+    padding: 0.9rem 1rem 1rem;
+    background:
+      repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 4px),
+      linear-gradient(180deg, #24242c, #17171d);
+    box-shadow: inset 0 1px 0 #ffffff14;
+  }
+
+  /*
+   * Four nodes wired onto one rail: a party that travels together, rather
+   * than four selectable players.
+   */
+  .stx-party {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Board trace running in from the edge of the panel. */
+  .stx-trace {
+    flex-shrink: 0;
+    margin-right: -0.15rem;
+    color: #79ffe1;
+    opacity: 0.6;
+  }
+
+  /* ...and continuing off the other side, fading out. */
+  .stx-trace-tail {
+    height: 2px;
+    min-width: 1.5rem;
+    max-width: 7rem;
+    flex: 1;
+    margin-left: -0.15rem;
+    background: linear-gradient(90deg, #9bff8f99, transparent);
+  }
+
+  .stx-party-rail {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0 0.3rem;
+  }
+
+  /* The wire the four of them hang on. */
+  .stx-party-rail::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0.3rem;
+    left: 0.3rem;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      #ff5b6e,
+      #6ee7ff 34%,
+      #ffd166 67%,
+      #9bff8f
+    );
+    opacity: 0.55;
+    transform: translateY(-50%);
+  }
+
+  .stx-party-node {
+    position: relative;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 2px solid var(--stx-node);
+    background: #12121a;
+    box-shadow:
+      0 0 9px color-mix(in srgb, var(--stx-node) 60%, transparent),
+      inset 0 0 5px color-mix(in srgb, var(--stx-node) 45%, transparent);
+    transform: rotate(45deg);
+  }
+
+  .stx-copy {
+    margin: 0;
+    color: #b9f7e6;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    text-shadow: 0 0 8px #79ffe12e;
+  }
+
+  .stx-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  /* Platform icons pressed into the panel like cabinet buttons. */
+  .stx-button {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 999px;
+    background: radial-gradient(circle at 34% 28%, #4b4b58, #1c1c23 72%);
+    color: #cfe9ff;
+    font-size: 1rem;
+    box-shadow:
+      inset 0 -2px 4px #00000099,
+      inset 0 2px 3px #ffffff1f,
+      0 2px 4px #00000080;
+    transition: transform 140ms ease;
+  }
+
+  .stx-card:hover .stx-button {
+    transform: translateY(1px);
+  }
+
+  @media (min-width: 768px) {
+    .stx-card {
+      padding: 1rem;
+    }
+
+    .stx-screen {
+      aspect-ratio: 16 / 6;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stx-screen {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  /*
+   * Frozen mid-travel, the roll bar just looks like a smudge on the screen,
+   * so remove it rather than pausing it.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .stx-roll {
+      display: none;
+    }
+
+    .stx-start {
+      opacity: 1;
+    }
+  }
+</style>
