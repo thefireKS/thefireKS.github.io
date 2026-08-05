@@ -10,6 +10,12 @@ permissions:
   pages: write
   id-token: write
 
+# Serialize Pages deployments: queued runs wait instead of racing an in-progress
+# deployment, and in-progress production deploys are never cancelled.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
