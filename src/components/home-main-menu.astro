@@ -7,12 +7,13 @@
  * live counts, the newest thing in it, and thumbnails of real covers, real
  * emotes and real comic pages.
  *
- * Thumbnails come in three kinds because they cannot all be handled the same
- * way. Animated GIFs have to be served raw — Astro's image pipeline re-encodes
- * them into a single frozen frame. Remote itch.io covers are already served at
- * 315x250 and the pipeline would pass them through untouched. Everything else
- * is a local still, and those must go through <Image>: the comic cover alone is
- * a 22 MB PNG, which no front page should be shipping to draw a 72px thumb.
+ * Thumbnails come in two kinds. Remote itch.io covers are already served at
+ * 315x250 and the pipeline would pass them through untouched, so they stay a
+ * plain <img>. Everything local goes through <Image>, animated GIFs included:
+ * sharp opens them with pages:-1 and re-encodes every frame, so the animation
+ * survives the resize. That matters here — the comic cover is a 22 MB PNG and
+ * the emote sheets are ~600 kB GIFs, none of which a front page should be
+ * shipping whole to draw a 72px thumb.
  */
 import type { CollectionEntry } from "astro:content";
 import type { ComicWithChapters } from "$api/comics";
@@ -28,8 +29,7 @@ interface Props {
 
 type Thumb =
   | { kind: "remote"; src: string; width: number; height: number }
-  | { kind: "animated"; image: ImageMetadata }
-  | { kind: "still"; image: ImageMetadata };
+  | { kind: "local"; image: ImageMetadata };
 
 /* Thumbnails render at 4.5rem tall; ask for twice that so they stay crisp. */
 const THUMB_HEIGHT = 144;
@@ -37,10 +37,7 @@ const THUMB_HEIGHT = 144;
 const thumbWidth = (image: ImageMetadata): number =>
   Math.round((THUMB_HEIGHT * image.width) / image.height);
 
-const localThumb = (image: ImageMetadata): Thumb =>
-  image.format === "gif"
-    ? { kind: "animated", image }
-    : { kind: "still", image };
+const localThumb = (image: ImageMetadata): Thumb => ({ kind: "local", image });
 
 interface MenuEntry {
   key: string;
@@ -162,16 +159,6 @@ const entries: MenuEntry[] = [
                       alt=""
                       width={thumb.width}
                       height={thumb.height}
-                      class="menu-thumb"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : thumb.kind === "animated" ? (
-                    <img
-                      src={thumb.image.src}
-                      alt=""
-                      width={thumb.image.width}
-                      height={thumb.image.height}
                       class="menu-thumb"
                       loading="lazy"
                       decoding="async"

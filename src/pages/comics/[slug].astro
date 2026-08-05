@@ -29,6 +29,13 @@ const statusLabel = {
   completed: "Completed",
   hiatus: "Hiatus",
 }[comic.data.status];
+
+// The cover is a fixed 320px column from xl up, and full content width below it.
+const COVER_WIDTH = 640;
+const COVER_HEIGHT = Math.round((COVER_WIDTH * 4) / 3);
+const COVER_WIDTHS = [320, 480, 640, 960, 1200, 1440];
+const COVER_SIZES =
+  "(min-width: 1280px) 320px, (min-width: 1024px) 724px, calc(100vw - 2rem)";
 ---
 
 <BaseLayout theme="comics" siteMainTitle={`${comic.data.title} | Comics`}>
@@ -46,6 +53,10 @@ const statusLabel = {
         <Image
           src={comic.data.cover}
           alt={getComicCoverAlt(comic)}
+          width={COVER_WIDTH}
+          height={COVER_HEIGHT}
+          widths={COVER_WIDTHS}
+          sizes={COVER_SIZES}
           class="h-full w-full object-cover"
         />
       </div>
