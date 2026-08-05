@@ -18,14 +18,11 @@ const totalChapterCount = comics.reduce(
       comics.length > 0 ? (
         <p>
           Browse <strong>{comics.length}</strong> comic series and jump into{" "}
-          <strong>{totalChapterCount}</strong> published chapters. Each title
-          opens into its own series page and vertical reading mode.
+          <strong>{totalChapterCount}</strong> published chapters.
         </p>
       ) : (
         <p>
-          The comics section is live, but no series are published yet. Add a
-          comic config and at least one chapter config to make the first reader
-          page appear here.
+          "No comics :("
         </p>
       )
     }
