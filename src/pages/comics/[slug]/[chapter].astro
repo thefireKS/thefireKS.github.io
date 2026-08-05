@@ -63,6 +63,13 @@ const { comic, chapterEntry, chapters, previousChapter, nextChapter } =
 const pageCountLabel = chapterEntry.data.pages.length === 1 ? "page" : "pages";
 const buttonBaseClass =
   "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em]";
+
+// Pages are read full-bleed inside a max-w-5xl column. Only a width is given so
+// every page keeps its own aspect ratio; Astro caps the set at the source width.
+const PAGE_WIDTH = 960;
+const PAGE_WIDTHS = [640, 960, 1280, 1600, 2048];
+const PAGE_SIZES =
+  "(min-width: 1536px) 1020px, (min-width: 1280px) 976px, (min-width: 1024px) 720px, calc(100vw - 2rem)";
 ---
 
 <BaseLayout
@@ -154,6 +161,9 @@ const buttonBaseClass =
               page.name ??
               `${comic.data.title} chapter ${chapterEntry.data.chapterNumber} page ${index + 1}`
             }
+            width={PAGE_WIDTH}
+            widths={PAGE_WIDTHS}
+            sizes={PAGE_SIZES}
             class="block h-auto w-full"
             loading={index === 0 ? "eager" : "lazy"}
           />

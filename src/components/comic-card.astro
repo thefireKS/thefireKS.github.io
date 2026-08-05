@@ -18,6 +18,14 @@ const statusLabel = {
 }[comic.data.status];
 
 const chapterCountLabel = chapters.length === 1 ? "chapter" : "chapters";
+
+// The cover sits in an aspect-[3/4] box inside a 1/2/3 column grid, so it never
+// renders wider than ~490px. Emit a responsive set instead of the source file.
+const COVER_WIDTH = 640;
+const COVER_HEIGHT = Math.round((COVER_WIDTH * 4) / 3);
+const COVER_WIDTHS = [320, 480, 640, 800, 960];
+const COVER_SIZES =
+  "(min-width: 1536px) 400px, (min-width: 1280px) 320px, (min-width: 1024px) 355px, (min-width: 640px) calc(50vw - 24px), calc(100vw - 2rem)";
 ---
 
 <article class="h-full">
@@ -29,6 +37,10 @@ const chapterCountLabel = chapters.length === 1 ? "chapter" : "chapters";
       <Image
         src={comic.data.cover}
         alt={getComicCoverAlt(comic)}
+        width={COVER_WIDTH}
+        height={COVER_HEIGHT}
+        widths={COVER_WIDTHS}
+        sizes={COVER_SIZES}
         class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
       />
     </div>
