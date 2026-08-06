@@ -2,15 +2,28 @@
 type BallTextureAnimationConfig = {
   columns: number;
   rows: number;
-  frameCount: number;
+  fromFrame: number;
+  toFrame: number;
   fps: number;
-  startFrame: number;
 };
 
 type BallTextureDescriptor = {
   name: string;
   url: string;
   animation: BallTextureAnimationConfig | null;
+};
+
+type AtlasSpriteConfig = {
+  name: string;
+  fromFrame: number;
+  toFrame: number;
+  fps: number;
+};
+
+type AtlasConfig = {
+  columns: number;
+  rows: number;
+  sprites: AtlasSpriteConfig[];
 };
 
 interface Props {
@@ -75,7 +88,80 @@ function toPositiveNumber(value: unknown) {
   return value;
 }
 
-function normalizeAtlasConfig(rawConfig: unknown): BallTextureAnimationConfig | null {
+function toFrameIndex(value: unknown, lastFrame: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const frame = Math.floor(value);
+  return frame >= 0 && frame <= lastFrame ? frame : null;
+}
+
+// New-style sheets list every sprite they hold as an inclusive frame range.
+function normalizeSpriteList(
+  rawSprites: unknown[],
+  lastFrame: number,
+  sheetFps: number,
+): AtlasSpriteConfig[] {
+  return rawSprites
+    .map((rawSprite, index) => {
+      if (!rawSprite || typeof rawSprite !== "object") {
+        return null;
+      }
+
+      const sprite = rawSprite as Record<string, unknown>;
+      const fromFrame = toFrameIndex(sprite.from, lastFrame);
+
+      if (fromFrame === null) {
+        return null;
+      }
+
+      const toFrame = toFrameIndex(sprite.to, lastFrame) ?? fromFrame;
+
+      if (toFrame < fromFrame) {
+        return null;
+      }
+
+      const rawName = typeof sprite.name === "string" ? sprite.name.trim() : "";
+
+      return {
+        name: rawName === "" ? `sprite-${index}` : rawName,
+        fromFrame,
+        toFrame,
+        fps: toPositiveNumber(sprite.fps) ?? sheetFps,
+      };
+    })
+    .filter((sprite): sprite is AtlasSpriteConfig => sprite !== null);
+}
+
+// Older sheets held a single animation described by frameCount/startFrame.
+function normalizeLegacySprite(
+  config: Record<string, unknown>,
+  lastFrame: number,
+  sheetFps: number,
+): AtlasSpriteConfig[] {
+  const frameCount = Math.min(
+    toPositiveInteger(config.frameCount) ??
+      toPositiveInteger(config.totalFrames) ??
+      lastFrame + 1,
+    lastFrame + 1,
+  );
+  const startFrame = Math.min(
+    toFrameIndex(config.startFrame, lastFrame) ?? 0,
+    frameCount - 1,
+  );
+
+  return [
+    {
+      name: "",
+      fromFrame: startFrame,
+      toFrame: frameCount - 1,
+      fps: sheetFps,
+    },
+  ];
+}
+
+function normalizeAtlasConfig(rawConfig: unknown): AtlasConfig | null {
   if (!rawConfig || typeof rawConfig !== "object") {
     return null;
   }
@@ -88,31 +174,13 @@ function normalizeAtlasConfig(rawConfig: unknown): BallTextureAnimationConfig | 
     return null;
   }
 
-  const maxFrameCount = columns * rows;
-  const frameCount = Math.min(
-    toPositiveInteger(config.frameCount) ??
-      toPositiveInteger(config.totalFrames) ??
-      maxFrameCount,
-    maxFrameCount,
-  );
-  const fps = toPositiveNumber(config.fps) ?? 24;
-  const startFrame = Math.min(
-    Math.max(
-      typeof config.startFrame === "number" && Number.isFinite(config.startFrame)
-        ? Math.floor(config.startFrame)
-        : 0,
-      0,
-    ),
-    frameCount - 1,
-  );
+  const lastFrame = columns * rows - 1;
+  const sheetFps = toPositiveNumber(config.fps) ?? 24;
+  const sprites = Array.isArray(config.sprites)
+    ? normalizeSpriteList(config.sprites, lastFrame, sheetFps)
+    : normalizeLegacySprite(config, lastFrame, sheetFps);
 
-  return {
-    columns,
-    rows,
-    frameCount,
-    fps,
-    startFrame,
-  };
+  return sprites.length > 0 ? { columns, rows, sprites } : null;
 }
 
 const atlasConfigByTextureName = new Map(
@@ -121,32 +189,39 @@ const atlasConfigByTextureName = new Map(
       getAtlasStem(modulePath),
       normalizeAtlasConfig(rawConfig),
     ])
-    .filter(
-      (
-        entry,
-      ): entry is [string, BallTextureAnimationConfig] => entry[1] !== null,
-    ),
+    .filter((entry): entry is [string, AtlasConfig] => entry[1] !== null),
 );
 
+// One sheet expands into one descriptor per sprite; they all share the same
+// url, so the browser fetches the image once no matter how many sprites use it.
 const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
   uploadedTextureModules,
 )
-  .map(([modulePath, moduleValue]) => {
-    const url = getModuleAssetUrl(moduleValue);
+  .map(([modulePath, moduleValue]) => ({
+    stem: getFileStem(modulePath),
+    url: getModuleAssetUrl(moduleValue),
+  }))
+  .filter((sheet): sheet is { stem: string; url: string } => sheet.url !== null)
+  .sort((left, right) => left.stem.localeCompare(right.stem))
+  .flatMap(({ stem, url }): BallTextureDescriptor[] => {
+    const atlas = atlasConfigByTextureName.get(stem);
 
-    if (!url) {
-      return null;
+    if (!atlas) {
+      return [{ name: stem, url, animation: null }];
     }
 
-    const name = getFileStem(modulePath);
-    return {
-      name,
+    return atlas.sprites.map((sprite) => ({
+      name: sprite.name === "" ? stem : `${stem}/${sprite.name}`,
       url,
-      animation: atlasConfigByTextureName.get(name) ?? null,
-    };
-  })
-  .filter((descriptor): descriptor is BallTextureDescriptor => descriptor !== null)
-  .sort((left, right) => left.name.localeCompare(right.name));
+      animation: {
+        columns: atlas.columns,
+        rows: atlas.rows,
+        fromFrame: sprite.fromFrame,
+        toFrame: sprite.toFrame,
+        fps: sprite.fps,
+      },
+    }));
+  });
 ---
 
 <section
@@ -156,12 +231,12 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
   {
     showHeader && (
       <header class="scene-header">
-        <h1>Emoticons Scene Prototype</h1>
+        <h1>Emoticons Waterfall</h1>
         <p>
-          Garage-style door, thin container geometry, real physics, and ball
-          textures loaded from <code>src/assets/ball-textures</code>. Add an
-          optional <code>&lt;texture-name&gt;.atlas.json</code> next to a sheet
-          when it should animate.
+          A 2D canvas waterfall of sprites cut straight out of the sheets in
+          <code>src/assets/ball-textures</code>. Add an optional
+          <code>&lt;texture-name&gt;.atlas.json</code> next to a sheet to slice
+          it into named sprites and animate them.
         </p>
       </header>
     )
@@ -178,8 +253,6 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
 </section>
 
 <script type="module">
-  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
-
   const hosts = document.querySelectorAll("[data-emoticons-scene-host]");
   for (const host of hosts) {
     if (host.dataset.initialized === "true") {
@@ -190,292 +263,256 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     initScene(host);
   }
 
+  function randomRange(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function lerp(min, max, t) {
+    return min + (max - min) * t;
+  }
+
+  function buildShuffledIndices(size) {
+    const indices = Array.from({ length: size }, (_, index) => index);
+
+    for (let i = indices.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const swap = indices[i];
+      indices[i] = indices[j];
+      indices[j] = swap;
+    }
+
+    return indices;
+  }
+
   function initScene(hostEl) {
     const textureDescriptors = JSON.parse(hostEl.dataset.textures || "[]");
-    const sceneMode = hostEl.dataset.sceneMode || "default";
-    const isBackground = sceneMode === "background";
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(hostEl.clientWidth, hostEl.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    hostEl.append(renderer.domElement);
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x322a2a);
-    scene.fog = new THREE.Fog(0xffffff, 10, 26);
-
-    const camera = new THREE.PerspectiveCamera(
-      44,
-      hostEl.clientWidth / hostEl.clientHeight,
-      0.1,
-      100,
-    );
-
-    if (isBackground) {
-      camera.position.set(0, 2.5, 8.2);
-      camera.lookAt(0, 0.7, 1.0);
-    } else {
-      camera.position.set(0, 2.1, 7.2);
-      camera.lookAt(0, 0.7, 0.6);
+    if (textureDescriptors.length === 0) {
+      return;
     }
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.48);
-    scene.add(ambient);
+    const isBackground = hostEl.dataset.sceneMode === "background";
 
-    const hemiLight = new THREE.HemisphereLight(0xffcdb2, 0x12061f, 0.45);
-    scene.add(hemiLight);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    hostEl.append(canvas);
 
-    const keyLightTarget = new THREE.Object3D();
-    keyLightTarget.position.set(0, 0.7, 1.7);
-    scene.add(keyLightTarget);
+    // Every sprite cut from the same file reuses one Image, so the browser
+    // fetches and decodes the sheet once no matter how many sprites use it.
+    const sheetImages = new Map();
 
-    const keyLight = new THREE.DirectionalLight(0xfff4e8, 1.35);
-    keyLight.position.set(-6.2, 8.4, 10.8);
-    keyLight.target = keyLightTarget;
-    scene.add(keyLight);
+    function loadSheetImage(url) {
+      let image = sheetImages.get(url);
 
-    const fillLight = new THREE.PointLight(0xff8b6a, 0.42, 20, 2);
-    fillLight.position.set(0, 2.5, 6.8);
-    scene.add(fillLight);
-
-    const cubeSide = 0.2;
-    const cubeGeometry = new THREE.BoxGeometry(cubeSide, cubeSide, cubeSide);
-
-    const textureLoader = new THREE.TextureLoader();
-    const animatedTextures = [];
-
-    function setAtlasFrame(texture, frame, columns, rows) {
-      const column = frame % columns;
-      const row = Math.floor(frame / columns);
-
-      texture.repeat.set(1 / columns, 1 / rows);
-      texture.offset.set(column / columns, 1 - (row + 1) / rows);
-    }
-
-    const cubeMaterials =
-      textureDescriptors.length > 0
-        ? textureDescriptors.map((descriptor) => {
-            const texture = textureLoader.load(descriptor.url);
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.magFilter = THREE.NearestFilter;
-            texture.minFilter = THREE.NearestFilter;
-            texture.generateMipmaps = false;
-            texture.wrapS = THREE.ClampToEdgeWrapping;
-            texture.wrapT = THREE.ClampToEdgeWrapping;
-
-            if (descriptor.animation) {
-              setAtlasFrame(
-                texture,
-                descriptor.animation.startFrame,
-                descriptor.animation.columns,
-                descriptor.animation.rows,
-              );
-            }
-
-            texture.needsUpdate = true;
-            const material = new THREE.MeshStandardMaterial({
-              map: texture,
-              roughness: 0.52,
-              metalness: 0.02,
-            });
-
-            if (descriptor.animation && descriptor.animation.frameCount > 1) {
-              animatedTextures.push({
-                texture,
-                columns: descriptor.animation.columns,
-                rows: descriptor.animation.rows,
-                frameCount: descriptor.animation.frameCount,
-                fps: descriptor.animation.fps,
-                currentFrame: descriptor.animation.startFrame,
-                elapsed: 0,
-              });
-            }
-
-            return material;
-          })
-        : [new THREE.MeshStandardMaterial({ color: 0xf2d96b })];
-
-    const balls = [];
-    const waterfallState = {
-      count: isBackground ? 128 : 24,
-      minX: isBackground ? -3.2 : -2.3,
-      maxX: isBackground ? 3.2 : 2.3,
-      z: isBackground ? 3 : 0.8,
-      topY: isBackground ? 3.9 : 3.2,
-      bottomY: isBackground ? -3.9 : -3.2,
-      fallSpeed: 0.92,
-    };
-    const waterfallSpanY = waterfallState.topY - waterfallState.bottomY;
-    const xCellCount = isBackground ? 16 : 6;
-    const xCellWidth = (waterfallState.maxX - waterfallState.minX) / xCellCount;
-    let xCellOrder = [];
-    let xCellCursor = 0;
-
-    function buildShuffledIndices(size) {
-      const indices = Array.from({ length: size }, (_, index) => index);
-
-      for (let i = indices.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const swap = indices[i];
-        indices[i] = indices[j];
-        indices[j] = swap;
+      if (!image) {
+        image = new Image();
+        image.src = url;
+        sheetImages.set(url, image);
       }
 
-      return indices;
+      return image;
     }
 
-    function nextGridX() {
-      if (xCellOrder.length === 0 || xCellCursor >= xCellOrder.length) {
-        xCellOrder = buildShuffledIndices(xCellCount);
-        xCellCursor = 0;
+    // Frame state lives per sprite rather than per falling particle: every
+    // particle showing the same emote stays in sync, and we tick one timer per
+    // sprite instead of one per particle.
+    const sprites = textureDescriptors.map((descriptor) => {
+      const animation = descriptor.animation;
+
+      return {
+        image: loadSheetImage(descriptor.url),
+        columns: animation ? animation.columns : 1,
+        rows: animation ? animation.rows : 1,
+        fromFrame: animation ? animation.fromFrame : 0,
+        frameCount: animation ? animation.toFrame - animation.fromFrame + 1 : 1,
+        fps: animation ? animation.fps : 0,
+        currentFrame: 0,
+        elapsed: 0,
+      };
+    });
+
+    const minSize = isBackground ? 18 : 26;
+    const maxSize = isBackground ? 52 : 78;
+    const minSpeed = isBackground ? 26 : 34;
+    const maxSpeed = isBackground ? 82 : 104;
+
+    const particles = [];
+    let width = 0;
+    let height = 0;
+
+    // Spawns walk a shuffled set of columns so the waterfall keeps an even
+    // spread instead of clumping wherever Math.random happens to land.
+    let columnOrder = [];
+    let columnCursor = 0;
+    let columnCount = 1;
+
+    function nextSpawnX(size) {
+      if (columnOrder.length === 0 || columnCursor >= columnOrder.length) {
+        columnOrder = buildShuffledIndices(columnCount);
+        columnCursor = 0;
       }
 
-      const cellIndex = xCellOrder[xCellCursor];
-      xCellCursor += 1;
+      const cell = columnOrder[columnCursor];
+      columnCursor += 1;
 
-      const baseX = waterfallState.minX + (cellIndex + 0.5) * xCellWidth;
-      const jitter = THREE.MathUtils.randFloat(-xCellWidth * 0.22, xCellWidth * 0.22);
-      return THREE.MathUtils.clamp(baseX + jitter, waterfallState.minX, waterfallState.maxX);
+      const cellWidth = width / columnCount;
+      const jitter = randomRange(-cellWidth * 0.3, cellWidth * 0.3);
+      const x = (cell + 0.5) * cellWidth + jitter - size / 2;
+
+      return Math.min(Math.max(x, -size * 0.25), width - size * 0.75);
     }
 
-    function createSpinVector() {
-      const spinDirection = new THREE.Vector3(
-        THREE.MathUtils.randFloatSpread(2),
-        THREE.MathUtils.randFloatSpread(2),
-        THREE.MathUtils.randFloatSpread(2),
+    function resetParticle(particle, initialY) {
+      // One knob drives size, speed and opacity together, so the small sprites
+      // read as further away rather than merely smaller.
+      const depth = Math.random();
+
+      particle.sprite = sprites[Math.floor(Math.random() * sprites.length)];
+      particle.size = Math.round(lerp(minSize, maxSize, depth));
+      particle.speed = lerp(minSpeed, maxSpeed, depth);
+      particle.alpha = lerp(0.42, 1, depth);
+      particle.x = nextSpawnX(particle.size);
+      particle.y = initialY;
+      particle.sway = randomRange(2, 11);
+      particle.swaySpeed = randomRange(0.35, 0.95);
+      particle.swayPhase = Math.random() * Math.PI * 2;
+    }
+
+    function syncParticleCount() {
+      const density = isBackground ? 6200 : 9000;
+      const target = Math.min(
+        Math.max(Math.round((width * height) / density), 24),
+        220,
       );
 
-      if (spinDirection.lengthSq() < 0.03) {
-        spinDirection.set(0.45, 0.72, -0.51);
+      while (particles.length > target) {
+        particles.pop();
       }
 
-      spinDirection.normalize();
-      const spinSpeed = THREE.MathUtils.randFloat(0.95, 2.6);
-      return spinDirection.multiplyScalar(spinSpeed);
-    }
-
-    function recycleBall(ball) {
-      ball.root.position.y += waterfallSpanY;
-      ball.root.position.x = nextGridX();
-      ball.root.position.z = waterfallState.z;
-      ball.fallSpeed = waterfallState.fallSpeed;
-      ball.spin.copy(createSpinVector());
-    }
-
-    function spawnBall(initialY) {
-      const material = cubeMaterials[balls.length % cubeMaterials.length];
-
-      const root = new THREE.Object3D();
-      const cube = new THREE.Mesh(cubeGeometry, material);
-      root.add(cube);
-      scene.add(root);
-
-      const ball = {
-        root,
-        fallSpeed: 0,
-        spin: new THREE.Vector3(),
-      };
-
-      ball.root.position.set(nextGridX(), initialY, waterfallState.z);
-      ball.fallSpeed = waterfallState.fallSpeed;
-      ball.spin.copy(createSpinVector());
-      balls.push(ball);
-    }
-
-    const clock = new THREE.Clock();
-
-    let rafId = 0;
-    let isDisposed = false;
-
-    const initialYOrder = buildShuffledIndices(waterfallState.count);
-    const initialYStep = (waterfallState.topY - waterfallState.bottomY) / waterfallState.count;
-
-    for (let i = 0; i < waterfallState.count; i += 1) {
-      const ySlot = initialYOrder[i];
-      const yJitter = THREE.MathUtils.randFloat(-initialYStep * 0.18, initialYStep * 0.18);
-      const initialY = waterfallState.bottomY + (ySlot + 0.5) * initialYStep + yJitter;
-      spawnBall(initialY);
-    }
-
-    function animate() {
-      const dt = Math.min(clock.getDelta(), 0.05);
-
-      for (let i = balls.length - 1; i >= 0; i -= 1) {
-        const item = balls[i];
-        item.root.position.y -= item.fallSpeed * dt;
-        item.root.rotation.x += item.spin.x * dt;
-        item.root.rotation.y += item.spin.y * dt;
-        item.root.rotation.z += item.spin.z * dt;
-
-        if (item.root.position.y <= waterfallState.bottomY) {
-          recycleBall(item);
-        }
+      while (particles.length < target) {
+        const particle = {};
+        resetParticle(particle, randomRange(-height * 0.2, height));
+        particles.push(particle);
       }
-
-      for (let i = 0; i < animatedTextures.length; i += 1) {
-        const animatedTexture = animatedTextures[i];
-        const frameDuration = 1 / animatedTexture.fps;
-        animatedTexture.elapsed += dt;
-
-        if (animatedTexture.elapsed < frameDuration) {
-          continue;
-        }
-
-        const framesToAdvance = Math.floor(animatedTexture.elapsed / frameDuration);
-        animatedTexture.elapsed -= framesToAdvance * frameDuration;
-        animatedTexture.currentFrame =
-          (animatedTexture.currentFrame + framesToAdvance) %
-          animatedTexture.frameCount;
-
-        setAtlasFrame(
-          animatedTexture.texture,
-          animatedTexture.currentFrame,
-          animatedTexture.columns,
-          animatedTexture.rows,
-        );
-      }
-
-      renderer.render(scene, camera);
-      rafId = requestAnimationFrame(animate);
     }
 
     function onResize() {
-      const width = hostEl.clientWidth;
-      const height = hostEl.clientHeight;
+      const nextWidth = hostEl.clientWidth;
+      const nextHeight = hostEl.clientHeight;
 
-      if (width <= 0 || height <= 0) {
+      if (nextWidth <= 0 || nextHeight <= 0) {
         return;
       }
 
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      width = nextWidth;
+      height = nextHeight;
+      columnCount = Math.max(Math.round(width / 90), 4);
+      columnOrder = [];
+      columnCursor = 0;
+
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      // Both of these are wiped whenever the backing store is resized.
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+
+      syncParticleCount();
+    }
+
+    function advanceSprites(dt) {
+      for (let i = 0; i < sprites.length; i += 1) {
+        const sprite = sprites[i];
+
+        if (sprite.frameCount <= 1) {
+          continue;
+        }
+
+        const frameDuration = 1 / sprite.fps;
+        sprite.elapsed += dt;
+
+        if (sprite.elapsed < frameDuration) {
+          continue;
+        }
+
+        const framesToAdvance = Math.floor(sprite.elapsed / frameDuration);
+        sprite.elapsed -= framesToAdvance * frameDuration;
+        sprite.currentFrame =
+          (sprite.currentFrame + framesToAdvance) % sprite.frameCount;
+      }
+    }
+
+    function drawParticle(particle, time) {
+      const sprite = particle.sprite;
+      const image = sprite.image;
+
+      if (!image.complete || image.naturalWidth === 0) {
+        return;
+      }
+
+      const tileWidth = image.naturalWidth / sprite.columns;
+      const tileHeight = image.naturalHeight / sprite.rows;
+      const frame = sprite.fromFrame + sprite.currentFrame;
+      const sourceX = (frame % sprite.columns) * tileWidth;
+      const sourceY = Math.floor(frame / sprite.columns) * tileHeight;
+      const swayX =
+        Math.sin(time * particle.swaySpeed + particle.swayPhase) * particle.sway;
+
+      ctx.globalAlpha = particle.alpha;
+      ctx.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        tileWidth,
+        tileHeight,
+        Math.round(particle.x + swayX),
+        Math.round(particle.y),
+        particle.size,
+        particle.size,
+      );
+    }
+
+    let rafId = 0;
+    let lastTime = 0;
+    let isDisposed = false;
+
+    function animate(now) {
+      const dt = lastTime === 0 ? 0 : Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      advanceSprites(dt);
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i += 1) {
+        const particle = particles[i];
+        particle.y += particle.speed * dt;
+
+        if (particle.y > height + particle.size) {
+          resetParticle(particle, -particle.size);
+        }
+
+        drawParticle(particle, now / 1000);
+      }
+
+      ctx.globalAlpha = 1;
+      rafId = requestAnimationFrame(animate);
     }
 
     function dispose() {
       if (isDisposed) {
         return;
       }
-      isDisposed = true;
 
+      isDisposed = true;
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("astro:before-swap", dispose);
 
-      for (let i = 0; i < balls.length; i += 1) {
-        scene.remove(balls[i].root);
-      }
-
-      cubeGeometry.dispose();
-      for (let i = 0; i < cubeMaterials.length; i += 1) {
-        cubeMaterials[i].map?.dispose();
-        cubeMaterials[i].dispose();
-      }
-
-      renderer.dispose();
+      particles.length = 0;
+      sheetImages.clear();
       hostEl.innerHTML = "";
       hostEl.dataset.initialized = "false";
     }
@@ -483,7 +520,8 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     window.addEventListener("resize", onResize);
     document.addEventListener("astro:before-swap", dispose);
 
-    animate();
+    onResize();
+    rafId = requestAnimationFrame(animate);
   }
 </script>
 
@@ -525,6 +563,10 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     height: clamp(420px, 72vh, 820px);
   }
 
+  .scene-host canvas {
+    display: block;
+  }
+
   .scene-wrapper--background {
     position: absolute;
     inset: 0;
@@ -539,7 +581,10 @@ const ballTextureDescriptors: BallTextureDescriptor[] = Object.entries(
     height: 100%;
     border: 0;
     border-radius: 0;
-    filter: blur(2px) saturate(0.82) brightness(0.8);
+    /* Flat backdrop the 3D renderer used to paint as its clear colour; the
+       canvas is transparent now, so it has to come from CSS. */
+    background: #322a2a;
+    filter: blur(2px) saturate(0.82) brightness(0.9);
     transform: scale(1.08);
     transform-origin: center;
   }

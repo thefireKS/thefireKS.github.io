@@ -14,7 +14,7 @@ export interface CreditRole {
 
 export const siteCredits: CreditRole[] = [
   { role: "developers", names: ["thefireks", "partaevil", "N1K04KA", "IAvocadoI"] },
-  { role: "artists", names: ["kiri.b", "lobotomi", "Diana Dvoeglazova"] },
+  { role: "artists", names: ["kiri.b", "lobotomi", "Dvoeglazova D.", "Salkov A."] },
   { role: "special thanks", names: ["1de", "Guulik"] },
 ];
 

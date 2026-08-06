@@ -1,0 +1,307 @@
+{
+  "columns": 20,
+  "rows": 20,
+  "fps": 12,
+  "sprites": [
+    {
+      "name": "revolver",
+      "from": 0,
+      "to": 0
+    },
+    {
+      "name": "fawn",
+      "from": 1,
+      "to": 1
+    },
+    {
+      "name": "demon-idle",
+      "from": 2,
+      "to": 2
+    },
+    {
+      "name": "demon-thinking",
+      "from": 3,
+      "to": 3
+    },
+    {
+      "name": "kid-blank",
+      "from": 4,
+      "to": 4
+    },
+    {
+      "name": "kid-screaming",
+      "from": 5,
+      "to": 5
+    },
+    {
+      "name": "frozen-statue",
+      "from": 6,
+      "to": 6
+    },
+    {
+      "name": "heart-eyes",
+      "from": 7,
+      "to": 7
+    },
+    {
+      "name": "feather-mask-angry",
+      "from": 8,
+      "to": 8
+    },
+    {
+      "name": "feather-mask-laugh",
+      "from": 9,
+      "to": 9
+    },
+    {
+      "name": "cat-glasses-angry",
+      "from": 10,
+      "to": 10
+    },
+    {
+      "name": "cat-glasses-dizzy",
+      "from": 11,
+      "to": 11
+    },
+    {
+      "name": "girl-upset",
+      "from": 12,
+      "to": 12
+    },
+    {
+      "name": "girl-thumbs-up",
+      "from": 13,
+      "to": 13
+    },
+    {
+      "name": "guy-neutral",
+      "from": 14,
+      "to": 14
+    },
+    {
+      "name": "guy-smoking",
+      "from": 15,
+      "to": 15
+    },
+    {
+      "name": "cat-lightning",
+      "from": 20,
+      "to": 26
+    },
+    {
+      "name": "pink-hair-what",
+      "from": 27,
+      "to": 27
+    },
+    {
+      "name": "blue-creature-walk",
+      "from": 28,
+      "to": 33
+    },
+    {
+      "name": "bread-face",
+      "from": 34,
+      "to": 34
+    },
+    {
+      "name": "dead-banner",
+      "from": 35,
+      "to": 35
+    },
+    {
+      "name": "pig-oink",
+      "from": 40,
+      "to": 51
+    },
+    {
+      "name": "mute-icon",
+      "from": 52,
+      "to": 52
+    },
+    {
+      "name": "sound-icon",
+      "from": 53,
+      "to": 53
+    },
+    {
+      "name": "shades-blob",
+      "from": 54,
+      "to": 54
+    },
+    {
+      "name": "blonde-shrug",
+      "from": 55,
+      "to": 55
+    },
+    {
+      "name": "beer-cheers",
+      "from": 60,
+      "to": 71
+    },
+    {
+      "name": "yellow-bird-drop",
+      "from": 73,
+      "to": 75
+    },
+    {
+      "name": "anime-punch",
+      "from": 80,
+      "to": 87
+    },
+    {
+      "name": "white-monster-yell",
+      "from": 89,
+      "to": 95
+    },
+    {
+      "name": "scribble-text",
+      "from": 100,
+      "to": 107
+    },
+    {
+      "name": "green-flower-pet",
+      "from": 108,
+      "to": 115
+    },
+    {
+      "name": "caret-blink",
+      "from": 120,
+      "to": 129
+    },
+    {
+      "name": "sound-on-badge",
+      "from": 130,
+      "to": 130
+    },
+    {
+      "name": "f9-key",
+      "from": 131,
+      "to": 135
+    },
+    {
+      "name": "cyan-beast",
+      "from": 140,
+      "to": 155
+    },
+    {
+      "name": "purple-beast-drink",
+      "from": 161,
+      "to": 175
+    },
+    {
+      "name": "void-eyes",
+      "from": 180,
+      "to": 183
+    },
+    {
+      "name": "blue-crab",
+      "from": 184,
+      "to": 195
+    },
+    {
+      "name": "gem-dancer",
+      "from": 200,
+      "to": 213
+    },
+    {
+      "name": "censored",
+      "from": 214,
+      "to": 215
+    },
+    {
+      "name": "rainbow-clown",
+      "from": 220,
+      "to": 225
+    },
+    {
+      "name": "forty-three-pct",
+      "from": 226,
+      "to": 234
+    },
+    {
+      "name": "black-tee",
+      "from": 235,
+      "to": 235
+    },
+    {
+      "name": "camera-flash",
+      "from": 241,
+      "to": 255
+    },
+    {
+      "name": "orc-tear",
+      "from": 260,
+      "to": 263
+    },
+    {
+      "name": "caged-pig",
+      "from": 264,
+      "to": 267
+    },
+    {
+      "name": "bald-guy-punch",
+      "from": 268,
+      "to": 275
+    },
+    {
+      "name": "guy-dancing",
+      "from": 280,
+      "to": 291
+    },
+    {
+      "name": "flamethrower",
+      "from": 292,
+      "to": 295
+    },
+    {
+      "name": "baseball-swing",
+      "from": 300,
+      "to": 311
+    },
+    {
+      "name": "beard-guy-point",
+      "from": 312,
+      "to": 315
+    },
+    {
+      "name": "rave-guy",
+      "from": 320,
+      "to": 335
+    },
+    {
+      "name": "larl-text",
+      "from": 340,
+      "to": 342
+    },
+    {
+      "name": "suit-guy-point",
+      "from": 344,
+      "to": 351
+    },
+    {
+      "name": "golden-halo",
+      "from": 352,
+      "to": 355
+    },
+    {
+      "name": "glasses-guy",
+      "from": 356,
+      "to": 359
+    },
+    {
+      "name": "face-turns-smile",
+      "from": 360,
+      "to": 373
+    },
+    {
+      "name": "minecart-boom",
+      "from": 374,
+      "to": 387
+    },
+    {
+      "name": "headphone-cat",
+      "from": 389,
+      "to": 396
+    }
+  ]
+}

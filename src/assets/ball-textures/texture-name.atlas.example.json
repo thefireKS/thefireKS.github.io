@@ -2,7 +2,10 @@
   "columns": 8,
   "rows": 8,
   "fps": 24,
-  "frameCount": 48,
-  "startFrame": 0,
-  "note": "Rename this file to <texture-name>.atlas.json and keep it next to the matching texture sheet."
+  "sprites": [
+    { "name": "static-emote", "from": 0, "to": 0 },
+    { "name": "short-loop", "from": 1, "to": 5 },
+    { "name": "slow-loop", "from": 6, "to": 17, "fps": 12 }
+  ],
+  "note": "Rename this file to <texture-name>.atlas.json and keep it next to the matching texture sheet. Frames are 0-indexed and read left-to-right, top-to-bottom; from/to are inclusive, and from === to means a single still frame. Per-sprite fps overrides the sheet fps. Sheets written before this schema (frameCount + startFrame, one animation per sheet) still load."
 }
