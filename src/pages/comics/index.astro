@@ -12,7 +12,11 @@ const totalChapterCount = comics.reduce(
 );
 ---
 
-<BaseLayout siteMainTitle="Comics" theme="comics">
+<BaseLayout
+  siteMainTitle="Comics"
+  theme="comics"
+  description="halfwaypixel's comics"
+>
   <ContentContainer heading="Comic updates">
     {
       comics.length > 0 ? (

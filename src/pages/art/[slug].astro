@@ -15,7 +15,12 @@ export async function getStaticPaths() {
 const { art } = Astro.props;
 ---
 
-<BaseLayout theme="art">
+<BaseLayout
+  theme="art"
+  siteMainTitle={`${art.data.title} | Art`}
+  description={art.data.description}
+  ogImage={art.data.cover.src}
+>
   <ContentContainer heading={art.data.title}>
     <p>{art.data.description}</p>
   </ContentContainer>

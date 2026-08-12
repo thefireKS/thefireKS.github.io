@@ -61,6 +61,9 @@ const { comic, chapterEntry, chapters, previousChapter, nextChapter } =
   Astro.props as Props;
 
 const pageCountLabel = chapterEntry.data.pages.length === 1 ? "page" : "pages";
+
+// Chapters without a summary of their own store "", so fall back on the series.
+const chapterDescription = chapterEntry.data.summary || comic.data.description;
 const buttonBaseClass =
   "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em]";
 
@@ -75,6 +78,8 @@ const PAGE_SIZES =
 <BaseLayout
   theme="comics"
   siteMainTitle={`${comic.data.title} | Chapter ${chapterEntry.data.chapterNumber}`}
+  description={chapterDescription}
+  ogImage={comic.data.cover.src}
 >
   <section class="space-y-5">
     <div class="flex flex-wrap items-center gap-3">

@@ -38,7 +38,12 @@ const COVER_SIZES =
   "(min-width: 1280px) 320px, (min-width: 1024px) 724px, calc(100vw - 2rem)";
 ---
 
-<BaseLayout theme="comics" siteMainTitle={`${comic.data.title} | Comics`}>
+<BaseLayout
+  theme="comics"
+  siteMainTitle={`${comic.data.title} | Comics`}
+  description={comic.data.description}
+  ogImage={comic.data.cover.src}
+>
   <a
     href="/comics"
     class="inline-flex items-center gap-2 rounded-full border border-highlight px-4 py-2 text-sm text-white/80 hover:bg-surface-hover"

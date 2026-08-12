@@ -8,9 +8,26 @@ interface Props {
   siteMainTitle?: string;
   logoTitle?: string;
   theme?: string;
+  description?: string;
+  ogImage?: string;
 }
 
-const { logoTitle = siteDetails.siteTitle, siteMainTitle, theme } = Astro.props;
+const {
+  logoTitle = siteDetails.siteTitle,
+  siteMainTitle,
+  theme,
+  description = siteDetails.siteDescription,
+  ogImage = siteDetails.ogImage,
+} = Astro.props;
+
+const pageTitle = siteMainTitle
+  ? `${siteMainTitle} | ${siteDetails.siteTitle}`
+  : siteDetails.siteTitle;
+
+/* Link previews and canonical tags only accept absolute URLs, which is what
+ * `site` in astro.config.mjs is for. */
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL(ogImage, Astro.site);
 ---
 
 <html lang="en" data-theme={theme}>
@@ -24,15 +41,16 @@ const { logoTitle = siteDetails.siteTitle, siteMainTitle, theme } = Astro.props;
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
-    {
-      siteMainTitle ? (
-        <title>
-          {siteMainTitle} | {siteDetails.siteTitle}
-        </title>
-      ) : (
-        <title>{siteDetails.siteTitle}</title>
-      )
-    }
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteDetails.siteTitle} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body class="site-shell lg:container mx-auto md:px-0">
     <NavigationBar title={logoTitle} />
