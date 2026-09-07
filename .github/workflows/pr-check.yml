@@ -1,0 +1,48 @@
+name: PR check
+
+on:
+  pull_request:
+    branches: [main]
+
+# Dependabot PRs get a read-only token and no secrets. The build never needs
+# them: src/data/games.json is committed, and getAllGames() returns that cache
+# before it would ever reach the itch.io API.
+permissions:
+  contents: read
+
+# Unlike the Pages deploy, a superseded PR run is worth cancelling — only the
+# result for the newest commit on the branch matters.
+concurrency:
+  group: "pr-check-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Astro site
+        run: pnpm run build
+
+      # astro build does not typecheck, so a broken toolchain (e.g. a
+      # TypeScript major that @astrojs/language-server cannot load) builds
+      # green and only shows up here.
+      - name: Typecheck
+        run: pnpm exec astro check
