@@ -21,14 +21,14 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       '@iconify-json/logos':
-        specifier: ^1.2.11
-        version: 1.2.11
+        specifier: ^1.2.14
+        version: 1.2.14
       '@iconify-json/material-symbols':
-        specifier: ^1.2.78
-        version: 1.2.78
+        specifier: ^1.2.92
+        version: 1.2.92
       '@iconify-json/pixelarticons':
-        specifier: ^1.2.6
-        version: 1.2.6
+        specifier: ^1.2.9
+        version: 1.2.9
       astro-icon:
         specifier: ^1.2.0
         version: 1.2.0
@@ -445,14 +445,14 @@ packages:
   '@iconify-json/icomoon-free@1.2.1':
     resolution: {integrity: sha512-Me5L0/vH/LlhVr5R85TFah0LcJD7an6mv+5dagvXY/YnXQsOx3eB7GUioXheSoB8tObhvCuZFbvujMYKPKNWfw==}
 
-  '@iconify-json/logos@1.2.11':
-    resolution: {integrity: sha512-fOo4pGEatuyuCFNL+cwquYMa2Im0oJHRHV7lt/Qqs5Ode/lPImHCQcfTtPzZj7qYMPb/h8YHN3TG54uEowrjNQ==}
+  '@iconify-json/logos@1.2.14':
+    resolution: {integrity: sha512-O36DicXkgAMT6NAsH7MTWlOql8NktHz9fBCItTjz6L/9gyRXw4vQj6qTeVgww5UZWiVugUV1MhVFA/g9HWIkBw==}
 
-  '@iconify-json/material-symbols@1.2.78':
-    resolution: {integrity: sha512-ITcvZUeHGRowyVc5SGWlAR6eW7r4Ywj/cXT3FUd3lnUHT47GIyaWL93zFOflq9Fwz+3AZ8UCzU8k/jBie+BDqQ==}
+  '@iconify-json/material-symbols@1.2.92':
+    resolution: {integrity: sha512-8DQClJc/77mpdlpNiWyjGXpx81YZuoNklrWNe/6K2rJtLTPU/7kRA7F/F8l5Q0a5yFvNlWuMReGB0m4CQ8cepA==}
 
-  '@iconify-json/pixelarticons@1.2.6':
-    resolution: {integrity: sha512-OG1GrDA//OpUfjD8kAxOGhvcTbaYqX+MGjq0KtyRs8yyG++dZ58DOV+VYZBIelwnpRbuh1QtiIa/tfG8M+9wdA==}
+  '@iconify-json/pixelarticons@1.2.9':
+    resolution: {integrity: sha512-euvs0Lwcoo5CAz5VicRlxWxO/Aqk/nOxbUhPkXCqWl3ua79H6XVrtWWGVIwugecCBwMrxltf2ArD5O41MNRGSw==}
 
   '@iconify/tools@5.0.14':
     resolution: {integrity: sha512-wJ4ZE3/HZh2iBqLwG+8FOMHe7CMJAJqwSXZSpPwMdj1gZM3Z4t2hbQMVw4Vm45oQ985qn0g89PUIcDEdKTheBA==}
@@ -2513,15 +2513,15 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/logos@1.2.11':
+  '@iconify-json/logos@1.2.14':
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/material-symbols@1.2.78':
+  '@iconify-json/material-symbols@1.2.92':
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/pixelarticons@1.2.6':
+  '@iconify-json/pixelarticons@1.2.9':
     dependencies:
       '@iconify/types': 2.0.0
 
