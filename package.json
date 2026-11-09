@@ -19,7 +19,7 @@
     "@iconify-json/pixelarticons": "^1.2.10",
     "astro-icon": "^1.2.0",
     "prettier": "^3.9.10",
-    "prettier-plugin-astro": "^1.1.1",
+    "prettier-plugin-astro": "^1.1.2",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
