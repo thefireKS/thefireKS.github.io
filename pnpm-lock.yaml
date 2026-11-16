@@ -21,11 +21,11 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       '@iconify-json/logos':
-        specifier: ^1.2.19
-        version: 1.2.19
+        specifier: ^1.2.20
+        version: 1.2.20
       '@iconify-json/material-symbols':
-        specifier: ^1.2.97
-        version: 1.2.97
+        specifier: ^1.2.99
+        version: 1.2.99
       '@iconify-json/pixelarticons':
         specifier: ^1.2.10
         version: 1.2.10
@@ -458,11 +458,11 @@ packages:
   '@iconify-json/icomoon-free@1.2.1':
     resolution: {integrity: sha512-Me5L0/vH/LlhVr5R85TFah0LcJD7an6mv+5dagvXY/YnXQsOx3eB7GUioXheSoB8tObhvCuZFbvujMYKPKNWfw==}
 
-  '@iconify-json/logos@1.2.19':
-    resolution: {integrity: sha512-ICjDNu2RW4xMk+0YAHyrTj/pW2BHgywcYyvf9DS16upalmSUbg+WqkEYJRim8iVOuVylyo9FFjzWLzACFhj8oA==}
+  '@iconify-json/logos@1.2.20':
+    resolution: {integrity: sha512-HDSte2/+sgGNn9i/eYMiIRDbdigWxZe6EFauQGtxfRG/4sUtUBFgLIdxotKQysKNsFJlLYDFzPILOs3mh9viRQ==}
 
-  '@iconify-json/material-symbols@1.2.97':
-    resolution: {integrity: sha512-MbE4QHrH4Z4eoerBFrzFSPqHw2NwVGwwOwGZdJym5l5N5loqEUThimlQpK9VJA6mvgWvj5jl43b8bZnqzOxNRQ==}
+  '@iconify-json/material-symbols@1.2.99':
+    resolution: {integrity: sha512-c7CBI249CmvZDeT7sml1iwKEjsbiB8NUG2Bg1KPd7jnvLQ/8iQv7TQWnqq9a2357SkPjnyVTxxTgkWO2rlUtCw==}
 
   '@iconify-json/pixelarticons@1.2.10':
     resolution: {integrity: sha512-bGUjTf8BRz0Abr5VNdy2rEB8eUB0evlaVtD4YlHSC16T7Yj70X8CRhEoetgHJJEbFu61veDWPcg71lp1H1NSSg==}
@@ -2285,11 +2285,11 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/logos@1.2.19':
+  '@iconify-json/logos@1.2.20':
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/material-symbols@1.2.97':
+  '@iconify-json/material-symbols@1.2.99':
     dependencies:
       '@iconify/types': 2.0.0
 
